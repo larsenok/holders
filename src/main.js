@@ -1,607 +1,435 @@
-import * as THREE from "three";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import "./style.css";
 
-// --- Scene setup -----------------------------------------------------------
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x04040a, 0.18);
-
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 1.6, 6);
-camera.lookAt(0, 0.5, 0);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-document.body.style.margin = "0";
-document.body.style.overflow = "hidden";
-document.body.appendChild(renderer.domElement);
-
-// --- Post processing (subtle bloom) ---------------------------------------
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.8, 0.1);
-bloomPass.enabled = true;
-composer.addPass(bloomPass);
-
-// --- Lighting --------------------------------------------------------------
-const ambientLight = new THREE.HemisphereLight(0x6b81ff, 0x050505, 0.6);
-scene.add(ambientLight);
-
-const keyLight = new THREE.DirectionalLight(0xc3cfff, 1.1);
-keyLight.position.set(5, 6, 4);
-scene.add(keyLight);
-
-const fillLight = new THREE.DirectionalLight(0xffaacc, 0.6);
-fillLight.position.set(-4, 3, -5);
-scene.add(fillLight);
-
-// --- Audio -----------------------------------------------------------------
-const listener = new THREE.AudioListener();
-camera.add(listener);
-
-const ambientAudio = new THREE.Audio(listener);
-ambientAudio.setLoop(true);
-ambientAudio.setVolume(0.25);
-ambientAudio.hasPlaybackControl = true;
-
-const flipAudio = new THREE.Audio(listener);
-flipAudio.setVolume(0.6);
-
-// Generate soft ambient pad and flip pluck tones procedurally.
-const audioContext = listener.context;
-function createSineBuffer(duration, frequency, gain = 0.2, attack = 0.2, release = 0.3) {
-  const sampleRate = audioContext.sampleRate;
-  const frameCount = Math.floor(sampleRate * duration);
-  const buffer = audioContext.createBuffer(1, frameCount, sampleRate);
-  const channel = buffer.getChannelData(0);
-
-  for (let i = 0; i < frameCount; i++) {
-    const t = i / sampleRate;
-    const env = t < attack
-      ? t / attack
-      : t > duration - release
-      ? Math.max(0, (duration - t) / release)
-      : 1;
-    channel[i] = Math.sin(2 * Math.PI * frequency * t) * gain * env;
-  }
-  return buffer;
-}
-
-ambientAudio.setBuffer(createSineBuffer(8, 110, 0.15));
-ambientAudio.offset = 0;
-
-let audioStarted = false;
-async function startAmbient() {
-  if (audioStarted) return;
-  try {
-    await audioContext.resume();
-  } catch (err) {
-    // ignore resume failures, browser may already be running
-  }
-  try {
-    await ambientAudio.play();
-    audioStarted = true;
-  } catch (err) {
-    // playback will retry on next user gesture
-  }
-}
-
-const flipBaseFreqs = [220, 330, 440, 550];
-
-function playFlipTone() {
-  startAmbient();
-  const freq = flipBaseFreqs[Math.floor(Math.random() * flipBaseFreqs.length)] * THREE.MathUtils.randFloat(0.8, 1.2);
-  const buffer = createSineBuffer(0.5, freq, 0.3, 0.05, 0.4);
-  flipAudio.setBuffer(buffer);
-  flipAudio.play();
-}
-
-// --- Background gradient + dust -------------------------------------------
-const backgroundUniforms = {
-  uTime: { value: 0 },
-  uColorA: { value: new THREE.Color(0x050711) },
-  uColorB: { value: new THREE.Color(0x111e33) },
+const state = {
+  role: null,
+  roomCode: new URLSearchParams(window.location.search).get("room") || "",
+  hostName: "",
+  playerName: "",
+  playerId: crypto.randomUUID(),
+  prompt: "",
+  roundType: null,
+  votes: {},
+  swipes: { yes: 0, no: 0 },
+  compatibility: [],
+  darePairs: [],
+  reveal: null,
+  players: [],
+  channel: null,
+  supabase: null,
+  supabaseReady: false,
+  logs: [],
 };
 
-const backgroundGeometry = new THREE.SphereGeometry(50, 32, 32);
-const backgroundMaterial = new THREE.ShaderMaterial({
-  side: THREE.BackSide,
-  uniforms: backgroundUniforms,
-  vertexShader: /* glsl */ `
-    varying vec3 vWorldPosition;
-    void main() {
-      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-      vWorldPosition = worldPosition.xyz;
-      gl_Position = projectionMatrix * viewMatrix * worldPosition;
-    }
-  `,
-  fragmentShader: /* glsl */ `
-    varying vec3 vWorldPosition;
-    uniform float uTime;
-    uniform vec3 uColorA;
-    uniform vec3 uColorB;
-    void main() {
-      float height = normalize(vWorldPosition).y * 0.5 + 0.5;
-      float hueShift = sin(uTime * 0.03 + height * 5.0) * 0.1;
-      vec3 color = mix(uColorA, uColorB, height + hueShift);
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `,
-});
-scene.add(new THREE.Mesh(backgroundGeometry, backgroundMaterial));
+const roundTemplates = {
+  pointing: "Point to the player most likely to own the aux cord all night.",
+  silent: "Vote silently: Who would you trust to hold your phone for a night?",
+  swipe: "Swipe yes/no on the vibe of the player shown to you.",
+  compatibility: "Answer 3 quick preference picks to find your match.",
+  dare: "Host will trigger a duo dare once everyone is in.",
+};
 
-const dustCount = 600;
-const dustGeometry = new THREE.BufferGeometry();
-const dustPositions = new Float32Array(dustCount * 3);
-const dustSpeeds = new Float32Array(dustCount);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://your-project.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "public-anon-key";
 
-for (let i = 0; i < dustCount; i++) {
-  const i3 = i * 3;
-  dustPositions[i3] = THREE.MathUtils.randFloatSpread(20);
-  dustPositions[i3 + 1] = THREE.MathUtils.randFloatSpread(12);
-  dustPositions[i3 + 2] = THREE.MathUtils.randFloatSpread(20);
-  dustSpeeds[i] = THREE.MathUtils.randFloat(0.02, 0.08);
+function log(message) {
+  const entry = { id: crypto.randomUUID(), message, ts: new Date().toLocaleTimeString() };
+  state.logs.unshift(entry);
+  renderLogs();
 }
 
-dustGeometry.setAttribute("position", new THREE.BufferAttribute(dustPositions, 3));
-
-const dustMaterial = new THREE.PointsMaterial({
-  color: 0xffffff,
-  size: 0.05,
-  transparent: true,
-  opacity: 0.25,
-  depthWrite: false,
-});
-const dust = new THREE.Points(dustGeometry, dustMaterial);
-scene.add(dust);
-
-// --- Card definitions ------------------------------------------------------
-const cardWords = [
-  "Calm",
-  "Shift",
-  "Echo",
-  "Spark",
-  "Drift",
-  "Glow",
-  "Trace",
-  "Breathe",
-  "Merge",
-  "Still",
-  "Pulse",
-  "Bloom",
-  "Flow",
-  "Rise",
-  "Dream",
-];
-
-// Helper to create gradient texture for each session.
-function createGradientTexture(colorStops) {
-  const size = 256;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  const gradient = ctx.createLinearGradient(0, 0, size, size);
-  colorStops.forEach(([stop, color]) => gradient.addColorStop(stop, color));
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+function renderLogs() {
+  const logEl = document.getElementById("log");
+  logEl.innerHTML = state.logs
+    .slice(0, 20)
+    .map((e) => `<div class="log-entry"><strong>${e.ts}</strong> · ${e.message}</div>`) 
+    .join("");
 }
 
-const paletteOptions = [
-  [[0, "#23395d"], [1, "#3a6073"]],
-  [[0, "#3a1c71"], [1, "#d76d77"]],
-  [[0, "#093028"], [1, "#237a57"]],
-  [[0, "#1f4037"], [1, "#99f2c8"]],
-  [[0, "#0f0c29"], [1, "#302b63"]],
-  [[0, "#1a2a6c"], [1, "#fdbb2d"]],
-];
-
-function randomPalette() {
-  return paletteOptions[Math.floor(Math.random() * paletteOptions.length)];
+function renderPlayers() {
+  const list = document.getElementById("player-list");
+  if (!list) return;
+  list.innerHTML = state.players
+    .map((p) => `<div class="list-item"><span>${p.name}</span><span class="badge">${p.role}</span></div>`) 
+    .join("") || "<div class=\"small\">Waiting for players...</div>";
+  document.getElementById("player-count").textContent = `${state.players.length} joined`;
 }
 
-// Card group container
-const cardsGroup = new THREE.Group();
-scene.add(cardsGroup);
-
-// Card store
-const cards = [];
-let flipsThisRound = 0;
-const flipsBeforeReset = 5;
-
-const cardCount = THREE.MathUtils.randInt(10, 15);
-
-function shuffleWords() {
-  return [...cardWords].sort(() => Math.random() - 0.5);
+function renderJoinInfo() {
+  const codeEl = document.getElementById("join-code");
+  const qrEl = document.getElementById("qr");
+  const link = `${window.location.origin}?room=${state.roomCode}`;
+  codeEl.textContent = state.roomCode ? state.roomCode : "--";
+  qrEl.innerHTML = state.roomCode
+    ? `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}" alt="QR code" loading="lazy" />`
+    : "<div class='small'>Create a lobby to generate a QR</div>";
+  document.getElementById("join-url").textContent = link;
 }
 
-let availableWords = shuffleWords();
-
-function drawWord() {
-  if (availableWords.length === 0) {
-    availableWords = shuffleWords();
+function renderPrompt() {
+  const prompt = document.getElementById("prompt-text");
+  const phase = document.getElementById("round-phase");
+  const revealBox = document.getElementById("reveal");
+  prompt.textContent = state.prompt || "Waiting for host to start a round.";
+  phase.textContent = state.roundType ? state.roundType : "Idle";
+  if (state.reveal) {
+    revealBox.innerHTML = `
+      <div class="stat">
+        <strong>Revealed:</strong><br />
+        ${state.reveal}
+      </div>`;
+  } else {
+    revealBox.innerHTML = "<div class='small'>Revealed results will appear here.</div>";
   }
-  return availableWords.pop();
 }
 
-function createCardLabelTexture(word) {
-  const size = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, size, size);
-  const bgGradient = ctx.createRadialGradient(size * 0.5, size * 0.45, size * 0.1, size * 0.5, size * 0.55, size * 0.5);
-  bgGradient.addColorStop(0, "rgba(255,255,255,0.15)");
-  bgGradient.addColorStop(1, "rgba(255,255,255,0.02)");
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, size, size);
-  ctx.font = "bold 120px 'Helvetica Neue', Arial, sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.88)";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(word, size / 2, size / 2);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+function renderStats() {
+  const votesBox = document.getElementById("vote-stats");
+  const swipeBox = document.getElementById("swipe-stats");
+  const compatBox = document.getElementById("compat-stats");
+
+  const votes = Object.entries(state.votes);
+  votesBox.innerHTML = votes.length
+    ? votes.map(([opt, count]) => `<div class="stat">${opt}: <strong>${count}</strong></div>`).join("")
+    : "<div class='small'>No votes yet.</div>";
+
+  swipeBox.innerHTML = `<div class="stat">Yes: <strong>${state.swipes.yes}</strong></div><div class="stat">No: <strong>${state.swipes.no}</strong></div>`;
+
+  compatBox.innerHTML = state.compatibility.length
+    ? state.compatibility
+        .slice(-4)
+        .map((entry) => `<div class="stat"><strong>${entry.name}</strong><br/>${entry.answers.join(", ")}</div>`)
+        .join("")
+    : "<div class='small'>No compatibility answers yet.</div>";
 }
 
-function createCard(positionIndex) {
-  const palette = randomPalette();
-  const frontTexture = createGradientTexture(palette);
-  const backWord = drawWord();
-  const backTexture = createCardLabelTexture(backWord);
+async function initSupabase() {
+  if (state.supabase) return state.supabase;
+  try {
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.48.0");
+    state.supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      realtime: { params: { eventsPerSecond: 10 } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    state.supabaseReady = true;
+    log("Connected to Supabase realtime.");
+    return state.supabase;
+  } catch (err) {
+    log("Failed to load Supabase client. Check network access.");
+    console.error(err);
+    throw err;
+  }
+}
 
-  const frontMaterial = new THREE.MeshPhysicalMaterial({
-    map: frontTexture,
-    metalness: 0.2,
-    roughness: 0.15,
-    transmission: 0.68,
-    thickness: 0.4,
-    transparent: true,
-    envMapIntensity: 1.0,
-    reflectivity: 0.4,
+async function joinRoom(role) {
+  state.role = role;
+  state.reveal = null;
+  state.votes = {};
+  state.swipes = { yes: 0, no: 0 };
+  state.compatibility = [];
+  renderStats();
+
+  if (!state.roomCode) {
+    state.roomCode = String(Math.floor(1000 + Math.random() * 9000));
+  }
+  const supabase = await initSupabase();
+  if (state.channel) await state.channel.unsubscribe();
+
+  const channel = supabase.channel(`room-${state.roomCode}`, {
+    config: { presence: { key: state.playerId } },
   });
 
-  const backMaterial = new THREE.MeshPhysicalMaterial({
-    map: backTexture,
-    metalness: 0.1,
-    roughness: 0.2,
-    emissive: new THREE.Color(palette[1][1]).multiplyScalar(0.15),
-    transmission: 0.25,
-    transparent: true,
+  channel.on("presence", { event: "sync" }, () => {
+    const presence = channel.presenceState();
+    const members = Object.values(presence).flat();
+    state.players = members.map((m) => ({ name: m.name, role: m.role }));
+    renderPlayers();
   });
 
-  const edgeMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(palette[1][1]).offsetHSL(0, 0, -0.2),
-    roughness: 0.35,
-    metalness: 0.5,
+  channel.on("broadcast", { event: "game-event" }, ({ payload }) => {
+    handleBroadcast(payload);
   });
 
-  const cardThickness = 0.06;
-  const cardWidth = 1;
-  const cardHeight = 1.45;
-
-  const cardGroup = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(cardWidth, cardHeight, cardThickness), [frontMaterial, frontMaterial, edgeMaterial, edgeMaterial, frontMaterial, backMaterial]);
-  body.castShadow = true;
-  body.receiveShadow = true;
-
-  cardGroup.add(body);
-
-  // Text floating above surface for extra depth.
-  const textMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.8, 0.2),
-    new THREE.MeshBasicMaterial({
-      map: createCardLabelTexture(backWord),
-      transparent: true,
-      opacity: 0,
-      depthWrite: false,
-    })
-  );
-  textMesh.position.z = cardThickness * 0.6;
-  cardGroup.add(textMesh);
-
-  const radius = 3.2;
-  const angle = positionIndex * ((Math.PI * 2) / cardCount);
-  cardGroup.position.set(Math.cos(angle) * radius * THREE.MathUtils.randFloat(0.75, 1.05), THREE.MathUtils.randFloat(-0.6, 1.4), Math.sin(angle) * radius * THREE.MathUtils.randFloat(0.75, 1.05));
-  cardGroup.rotation.y = angle + Math.PI * 0.5;
-
-  const wobbleAxis = new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize();
-  const wobbleSpeed = THREE.MathUtils.randFloat(0.3, 0.7);
-
-  const cardData = {
-    group: cardGroup,
-    mesh: body,
-    text: textMesh,
-    frontTexture,
-    backTexture,
-    isFlipping: false,
-    flipProgress: 0,
-    targetRotation: 0,
-    baseRotation: cardGroup.rotation.y,
-    reveal: false,
-    wobbleAxis,
-    wobbleSpeed,
-    wobbleOffset: Math.random() * Math.PI * 2,
-    driftOffset: new THREE.Vector3().randomDirection().multiplyScalar(0.05),
-  };
-
-  cardsGroup.add(cardGroup);
-  cards.push(cardData);
-}
-
-for (let i = 0; i < cardCount; i++) {
-  createCard(i);
-}
-
-// --- Interaction -----------------------------------------------------------
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-let hoveredCard = null;
-
-function setPointerFromEvent(event) {
-  const rect = renderer.domElement.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / rect.width;
-  const y = (event.clientY - rect.top) / rect.height;
-  pointer.set(x * 2 - 1, -(y * 2 - 1));
-}
-
-function flipCard(card) {
-  if (!card || card.isFlipping) return;
-  card.isFlipping = true;
-  card.flipProgress = 0;
-  card.reveal = false;
-  flipsThisRound += 1;
-  playFlipTone();
-  spawnFlipParticles(card.group.position);
-  nudgeCamera(card.group.position);
-
-  if (flipsThisRound >= flipsBeforeReset) {
-    setTimeout(resetDeck, 1400);
-  }
-}
-
-window.addEventListener("pointermove", (event) => {
-  setPointerFromEvent(event);
-});
-
-window.addEventListener("pointerdown", () => {
-  startAmbient();
-});
-
-window.addEventListener("click", (event) => {
-  setPointerFromEvent(event);
-  raycaster.setFromCamera(pointer, camera);
-  const intersects = raycaster.intersectObjects(cards.map((c) => c.mesh));
-  if (intersects.length > 0) {
-    const mesh = intersects[0].object;
-    const card = cards.find((c) => c.mesh === mesh);
-    flipCard(card);
-  }
-});
-
-window.addEventListener("touchstart", (event) => {
-  if (event.touches.length > 0) {
-    const touch = event.touches[0];
-    setPointerFromEvent(touch);
-    startAmbient();
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(cards.map((c) => c.mesh));
-    if (intersects.length > 0) {
-      const mesh = intersects[0].object;
-      const card = cards.find((c) => c.mesh === mesh);
-      flipCard(card);
+  await channel.subscribe((status) => {
+    if (status === "SUBSCRIBED") {
+      channel.track({ name: state.role === "host" ? state.hostName : state.playerName, role: state.role });
+      log(`${state.role} joined room ${state.roomCode}`);
+      renderJoinInfo();
     }
-  }
-});
+  });
 
-window.addEventListener("keydown", (event) => {
-  startAmbient();
-  if (event.key.toLowerCase() === "r") {
-    resetDeck();
-  }
-});
-
-// --- Flip reaction helpers -------------------------------------------------
-const particleGeometry = new THREE.BufferGeometry();
-particleGeometry.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
-const particleMaterial = new THREE.PointsMaterial({
-  color: 0xffeedd,
-  size: 0.1,
-  transparent: true,
-  opacity: 1,
-  depthWrite: false,
-});
-
-const activeBursts = [];
-
-function spawnFlipParticles(position) {
-  const count = 20;
-  const positions = [];
-  for (let i = 0; i < count; i++) {
-    positions.push(position.x, position.y, position.z);
-  }
-  const geometry = particleGeometry.clone();
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  const particles = new THREE.Points(geometry, particleMaterial.clone());
-  particles.userData = { startTime: performance.now(), count };
-  scene.add(particles);
-  activeBursts.push(particles);
+  state.channel = channel;
 }
 
-let cameraDrift = new THREE.Vector3();
-function nudgeCamera(targetPosition) {
-  const direction = new THREE.Vector3().subVectors(targetPosition, camera.position);
-  cameraDrift.add(direction.multiplyScalar(0.02));
+function handleBroadcast(payload) {
+  const { type, data } = payload;
+  switch (type) {
+    case "player_join":
+      log(`${data.name} joined the lobby.`);
+      break;
+    case "send_prompt":
+      state.roundType = data.roundType;
+      state.prompt = data.prompt;
+      state.reveal = null;
+      renderPrompt();
+      break;
+    case "player_vote":
+      state.votes[data.option] = (state.votes[data.option] || 0) + 1;
+      renderStats();
+      break;
+    case "player_swipe":
+      state.swipes[data.decision] += 1;
+      renderStats();
+      break;
+    case "compatibility":
+      state.compatibility.push(data);
+      renderStats();
+      break;
+    case "reveal_results":
+      state.reveal = data.message;
+      renderPrompt();
+      break;
+    default:
+      break;
+  }
 }
 
-// --- Deck reset ------------------------------------------------------------
-function resetDeck() {
-  flipsThisRound = 0;
-  availableWords = shuffleWords();
-  cards.forEach((card, index) => {
-    const newPalette = randomPalette();
-    const newFrontTexture = createGradientTexture(newPalette);
-    const newWord = drawWord();
-    const newBackTexture = createCardLabelTexture(newWord);
-    card.frontTexture.dispose();
-    card.backTexture.dispose();
-    card.frontTexture = newFrontTexture;
-    card.backTexture = newBackTexture;
-    card.mesh.material[0].map = newFrontTexture;
-    card.mesh.material[1].map = newFrontTexture;
-    card.mesh.material[4].map = newFrontTexture;
-    card.mesh.material[5].map = newBackTexture;
-    card.mesh.material[5].emissive = new THREE.Color(newPalette[1][1]).multiplyScalar(0.15);
-    card.text.material.map.dispose();
-    card.text.material.map = createCardLabelTexture(newWord);
-    card.text.material.opacity = 0;
-
-    const radius = 3.2;
-    const angle = index * ((Math.PI * 2) / cards.length) + Math.random() * 0.4;
-    card.group.position.set(
-      Math.cos(angle) * radius * THREE.MathUtils.randFloat(0.75, 1.05),
-      THREE.MathUtils.randFloat(-0.6, 1.4),
-      Math.sin(angle) * radius * THREE.MathUtils.randFloat(0.75, 1.05)
-    );
-    card.group.rotation.y = angle + Math.PI * 0.5;
-    card.baseRotation = card.group.rotation.y;
-    card.isFlipping = false;
-    card.flipProgress = 0;
-    card.reveal = false;
+function sendEvent(type, data = {}) {
+  if (!state.channel) return;
+  state.channel.send({
+    type: "broadcast",
+    event: "game-event",
+    payload: { type, data },
   });
 }
 
-// --- Animation loop --------------------------------------------------------
-const clock = new THREE.Clock();
+function setupHostControls() {
+  const createBtn = document.getElementById("create-room");
+  const startButtons = document.querySelectorAll("[data-round]");
+  const revealBtn = document.getElementById("reveal-btn");
 
-function updateCards(delta) {
-  raycaster.setFromCamera(pointer, camera);
-  const intersects = raycaster.intersectObjects(cards.map((c) => c.mesh));
-  hoveredCard = intersects.length > 0 ? cards.find((c) => c.mesh === intersects[0].object) : null;
+  createBtn.addEventListener("click", async () => {
+    state.hostName = document.getElementById("host-name").value || "Host";
+    state.roomCode = document.getElementById("room-code").value || String(Math.floor(1000 + Math.random() * 9000));
+    await joinRoom("host");
+    sendEvent("player_join", { name: state.hostName });
+    renderJoinInfo();
+  });
 
-  cards.forEach((card) => {
-    const { group, mesh, text } = card;
+  startButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const round = btn.dataset.round;
+      state.roundType = round;
+      state.prompt = roundTemplates[round];
+      state.reveal = null;
+      state.votes = {};
+      state.swipes = { yes: 0, no: 0 };
+      state.compatibility = [];
+      renderPrompt();
+      renderStats();
+      sendEvent("send_prompt", { roundType: round, prompt: state.prompt });
+    });
+  });
 
-    // Idle motion
-    const wobble = Math.sin(clock.elapsedTime * card.wobbleSpeed + card.wobbleOffset) * 0.06;
-    const subtleDrift = Math.sin(clock.elapsedTime * 0.18 + card.wobbleOffset) * 0.04;
-    group.quaternion.slerp(
-      new THREE.Quaternion().setFromAxisAngle(card.wobbleAxis, wobble),
-      0.08
-    );
-    group.position.addScaledVector(card.driftOffset, Math.sin(clock.elapsedTime * 0.12 + card.wobbleOffset) * 0.0025);
-    group.position.y += Math.sin(clock.elapsedTime * 0.7 + card.wobbleOffset) * 0.0008;
-
-    if (hoveredCard === card && !card.isFlipping) {
-      group.position.y += 0.01;
-    }
-
-    // Flip animation
-    if (card.isFlipping) {
-      card.flipProgress += delta * 1.8;
-      const progress = Math.min(card.flipProgress, 1);
-      const rotation = THREE.MathUtils.smoothstep(progress, 0, 1) * Math.PI;
-      mesh.rotation.y = rotation;
-      text.material.opacity = THREE.MathUtils.smoothstep(progress, 0.5, 1);
-
-      if (!card.reveal && progress > 0.5) {
-        card.reveal = true;
-      }
-
-      if (progress >= 1) {
-        card.isFlipping = false;
-        card.flipProgress = 0;
-        setTimeout(() => {
-          text.material.opacity = 0;
-          mesh.rotation.y = 0;
-        }, 1500);
-      }
-    } else {
-      mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, 0, 0.08);
-      text.material.opacity = THREE.MathUtils.lerp(text.material.opacity, 0, 0.04);
-    }
-
-    // Gentle orbit motion
-    group.rotation.y = THREE.MathUtils.lerp(group.rotation.y, card.baseRotation + subtleDrift, 0.02);
+  revealBtn.addEventListener("click", () => {
+    const message = buildRevealMessage();
+    state.reveal = message;
+    renderPrompt();
+    sendEvent("reveal_results", { message });
   });
 }
 
-function updateDust(delta) {
-  const positions = dustGeometry.attributes.position.array;
-  for (let i = 0; i < dustCount; i++) {
-    const i3 = i * 3;
-    positions[i3 + 1] += Math.sin(clock.elapsedTime * dustSpeeds[i] + i) * 0.0008;
-    positions[i3] += Math.cos(clock.elapsedTime * dustSpeeds[i] * 0.4 + i) * 0.0008;
-  }
-  dustGeometry.attributes.position.needsUpdate = true;
-}
-
-function updateParticles() {
-  const now = performance.now();
-  for (let i = activeBursts.length - 1; i >= 0; i--) {
-    const burst = activeBursts[i];
-    const age = (now - burst.userData.startTime) / 1000;
-    const positions = burst.geometry.attributes.position;
-    const array = positions.array;
-    for (let j = 0; j < burst.userData.count; j++) {
-      const idx = j * 3;
-      array[idx] += (Math.random() - 0.5) * 0.02;
-      array[idx + 1] += Math.random() * 0.02;
-      array[idx + 2] += (Math.random() - 0.5) * 0.02;
-    }
-    positions.needsUpdate = true;
-    const material = burst.material;
-    material.opacity = THREE.MathUtils.lerp(material.opacity, 0, 0.12);
-    material.size = THREE.MathUtils.lerp(material.size, 0.02, 0.1);
-    if (age > 1) {
-      scene.remove(burst);
-      burst.geometry.dispose();
-      burst.material.dispose();
-      activeBursts.splice(i, 1);
-    }
+function buildRevealMessage() {
+  switch (state.roundType) {
+    case "silent":
+      return `Top vote: ${topVote()}`;
+    case "swipe":
+      return `Yes ${state.swipes.yes} · No ${state.swipes.no}`;
+    case "compatibility":
+      return state.compatibility.length
+        ? `${state.compatibility.length} answers submitted`
+        : "No compatibility data yet";
+    case "dare":
+      return "Random duo selected!";
+    default:
+      return "Reveal triggered.";
   }
 }
 
-function updateCamera(delta) {
-  camera.position.addScaledVector(cameraDrift, 0.03);
-  camera.lookAt(0, 0.5, 0);
-  cameraDrift.multiplyScalar(0.92);
-  const slowOrbit = Math.sin(clock.elapsedTime * 0.05) * 0.25;
-  camera.position.x = slowOrbit;
+function topVote() {
+  const entries = Object.entries(state.votes);
+  if (!entries.length) return "No votes";
+  const [choice, count] = entries.sort((a, b) => b[1] - a[1])[0];
+  return `${choice} (${count})`;
 }
 
-function animate() {
-  requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  backgroundUniforms.uTime.value += delta * 60;
-  updateCards(delta);
-  updateDust(delta);
-  updateParticles();
-  updateCamera(delta);
-  composer.render();
+function setupPlayerControls() {
+  const joinBtn = document.getElementById("join-room");
+  joinBtn.addEventListener("click", async () => {
+    state.playerName = document.getElementById("player-name").value || "Player";
+    state.roomCode = document.getElementById("player-room-code").value || state.roomCode;
+    await joinRoom("player");
+    sendEvent("player_join", { name: state.playerName });
+  });
+
+  document.querySelectorAll("[data-vote]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      sendEvent("player_vote", { option: btn.dataset.vote, player: state.playerName });
+    });
+  });
+
+  document.querySelectorAll("[data-swipe]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      sendEvent("player_swipe", { decision: btn.dataset.swipe, player: state.playerName });
+    });
+  });
+
+  document.getElementById("compat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const answers = Array.from(e.target.querySelectorAll("select")).map((s) => s.value);
+    sendEvent("compatibility", { name: state.playerName, answers });
+  });
 }
-animate();
 
-// --- Resize ----------------------------------------------------------------
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
-  bloomPass.setSize(window.innerWidth, window.innerHeight);
-});
+function setupUI() {
+  document.getElementById("app").innerHTML = `
+    <header>
+      <div class="badge">Realtime Supabase + Browser Player</div>
+      <h1>Party Matchmaking MVP</h1>
+      <div class="subtitle">Host on mobile, players join via QR or 4-digit code. Anonymous, realtime rounds.</div>
+    </header>
 
-// --- Guidance comments -----------------------------------------------------
-// To introduce new moods: add their labels into `cardWords`. The drawWord() helper
-// automatically cycles through them between resets. To give specific reactions per mood,
-// extend flipCard() to check the revealed word and trigger custom particle colors,
-// lights, or camera motions tailored to that mood.
+    <div class="layout">
+      <section class="card">
+        <div class="section-title">
+          <h2>Host Console</h2>
+          <span class="small" id="player-count">0 joined</span>
+        </div>
+        <div class="stack">
+          <label class="label">Host name</label>
+          <input id="host-name" placeholder="Host" />
+          <label class="label">Room code</label>
+          <input id="room-code" placeholder="1234" value="${state.roomCode}" />
+          <button id="create-room">Create / Join Lobby</button>
+        </div>
+        <hr style="margin: 16px 0; border: 1px solid rgba(255,255,255,0.05)" />
+        <div class="stack">
+          <div class="label">Round controls</div>
+          <div class="inline-actions">
+            <button data-round="pointing">Pointing</button>
+            <button data-round="silent">Silent vote</button>
+            <button data-round="swipe">Swipe</button>
+          </div>
+          <div class="inline-actions">
+            <button data-round="compatibility">Compatibility</button>
+            <button data-round="dare">Dare duo</button>
+            <button id="reveal-btn" class="secondary">Reveal now</button>
+          </div>
+        </div>
+        <div class="stack" style="margin-top:12px;">
+          <div class="label">Players</div>
+          <div id="player-list" class="list"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
+          <h2>Lobby Share</h2>
+          <span class="badge">QR + link</span>
+        </div>
+        <div class="stack">
+          <div class="label">Join code</div>
+          <div class="code-box" id="join-code">--</div>
+          <div class="label">Join URL</div>
+          <div class="code-box" id="join-url">--</div>
+          <div class="label">QR code</div>
+          <div class="qr" id="qr"></div>
+          <div class="small">Players scan the QR or enter the code at the top of the browser page.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
+          <h2>Player Client</h2>
+          <span class="badge">Mobile-friendly</span>
+        </div>
+        <div class="stack">
+          <label class="label">Player name</label>
+          <input id="player-name" placeholder="You" />
+          <label class="label">Room code</label>
+          <input id="player-room-code" placeholder="1234" value="${state.roomCode}" />
+          <button id="join-room">Join as player</button>
+        </div>
+        <hr style="margin: 16px 0; border: 1px solid rgba(255,255,255,0.05)" />
+        <div class="prompt-box">
+          <div class="badge" id="round-phase">Idle</div>
+          <div id="prompt-text" style="margin-top:8px; font-size:1rem;"></div>
+        </div>
+        <div class="stack" style="margin-top:12px;">
+          <div class="label">Silent voting</div>
+          <div class="inline-actions">
+            <button data-vote="A">A</button>
+            <button data-vote="B">B</button>
+            <button data-vote="C">C</button>
+          </div>
+          <div class="label">Swipe</div>
+          <div class="inline-actions">
+            <button data-swipe="yes">Yes</button>
+            <button data-swipe="no">No</button>
+          </div>
+          <form id="compat-form" class="stack">
+            <div class="label">Compatibility picks</div>
+            <select>
+              <option>Beach night</option>
+              <option>Club</option>
+              <option>House party</option>
+            </select>
+            <select>
+              <option>Spicy food</option>
+              <option>Comfort food</option>
+              <option>Finger food</option>
+            </select>
+            <select>
+              <option>Early bird</option>
+              <option>Night owl</option>
+            </select>
+            <button type="submit" class="secondary">Send compatibility</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">
+          <h2>Round Stats & Reveal</h2>
+          <span class="badge">Live aggregation</span>
+        </div>
+        <div class="stack">
+          <div class="label">Votes</div>
+          <div id="vote-stats" class="result-grid"></div>
+          <div class="label">Swipes</div>
+          <div id="swipe-stats" class="inline-actions"></div>
+          <div class="label">Compatibility</div>
+          <div id="compat-stats" class="result-grid"></div>
+          <div class="label">Reveal</div>
+          <div id="reveal"></div>
+        </div>
+      </section>
+
+      <section class="card" style="grid-column: 1 / -1;">
+        <div class="section-title">
+          <h2>Event Log</h2>
+          <span class="badge">Realtime</span>
+        </div>
+        <div id="log" class="log"></div>
+      </section>
+    </div>
+  `;
+
+  renderJoinInfo();
+  renderPrompt();
+  renderStats();
+  renderLogs();
+  setupHostControls();
+  setupPlayerControls();
+}
+
+setupUI();
