@@ -18,6 +18,50 @@ const formatDuration = (seconds: number) => {
   return `${m > 0 ? `${m}m ` : ''}${s}s`
 }
 
+const durationLabel = (seconds: number) => {
+  if (seconds <= 45) return 'brief'
+  if (seconds <= 90) return 'steady'
+  if (seconds <= 150) return 'long'
+  return 'extended'
+}
+
+const rewardTier = (value: number, thresholds: [number, number, number], labels: [string, string, string, string]) => {
+  if (value <= thresholds[0]) return labels[0]
+  if (value <= thresholds[1]) return labels[1]
+  if (value <= thresholds[2]) return labels[2]
+  return labels[3]
+}
+
+const lootOddsLabel = (chance: number) => {
+  if (chance < 0.08) return 'rare'
+  if (chance < 0.18) return 'possible'
+  if (chance < 0.35) return 'likely'
+  return 'common'
+}
+
+const rumorBlurb = (area: string, type: string) => {
+  const areaFlavors: Record<string, string> = {
+    Forest: 'a trail that refuses to stay mapped',
+    Desert: 'voices carried on hot wind',
+    Mountains: 'something heavy shifting above the tree line',
+    Swamp: 'lanterns bobbing where none should be',
+    Ruins: 'a door that only opens at dusk',
+    Tundra: 'tracks that freeze over too quickly',
+  }
+  const typeFlavors: Record<string, string> = {
+    hunt: 'the quarry might be cleverer than the stories',
+    explore: 'the path back is never the same twice',
+    gathering: 'locals argue over what is safe to touch',
+    escort: 'not everyone agrees on the destination',
+    deal: 'every handshake has a second price',
+    rescue: 'someone wants them found, someone does not',
+  }
+
+  const areaFlavor = areaFlavors[area] ?? 'a rumor that refuses to settle'
+  const typeFlavor = typeFlavors[type] ?? 'the details feel deliberately thin'
+  return `Rumor: ${areaFlavor}; ${typeFlavor}.`
+}
+
 const areaColor = (area: string) => {
   switch (area) {
     case 'Forest': return 'text-green-400'
@@ -40,7 +84,12 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
   const isDone = remaining <= 0
 
   const materials = Math.max(1, Math.floor(1 * (1 + bonuses.materials)))
-  const extraChance = Math.round(bonuses.extraLootChance * 100)
+  const extraChance = bonuses.extraLootChance
+
+  const goldBand = rewardTier(m.goldReward, [40, 80, 120], ['meager', 'modest', 'generous', 'lavish'])
+  const guildXpBand = rewardTier(m.guildXp, [30, 60, 90], ['low', 'steady', 'notable', 'legendary'])
+  const charXpBand = rewardTier(m.characterXp, [20, 40, 70], ['slow', 'steady', 'fast', 'breakthrough'])
+  const materialBand = rewardTier(materials, [1, 2, 3], ['sparse', 'steady', 'plentiful', 'overflowing'])
 
   return (
     <div
@@ -68,7 +117,11 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
           Type: <span className="text-white">{mission.type}</span>
         </div>
         <div className="text-xs text-gray-400 font-mono">
-          ⏱ Duration: <span className="text-white">{formatDuration(m.duration)}</span>
+          ⏱ Pace: <span className="text-white">{durationLabel(m.duration)}</span>
+          <span className="text-gray-500"> ({formatDuration(m.duration)})</span>
+        </div>
+        <div className="text-xs text-amber-100 font-mono">
+          {rumorBlurb(mission.area, mission.type)}
         </div>
 
         {bonusTags.length > 0 && (
@@ -93,7 +146,7 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
               onClick={() => startMission(mission.id)}
               className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs font-mono"
             >
-              ▶ Start Mission
+              ▶ Commit Party
             </button>
           </div>
         )}
@@ -101,11 +154,11 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
 
       {/* RIGHT SIDE */}
       <div className="w-32 flex flex-col justify-center items-end text-xs text-yellow-200 font-mono space-y-1">
-        <div>💰 <span className="text-white">{m.goldReward}</span></div>
-        <div>🧭 <span className="text-white">{m.guildXp}</span></div>
-        <div>🎖 <span className="text-white">{mission.characterXp}</span></div>
-        <div>📦 <span className="text-white">~{materials}</span></div>
-        <div>✨ <span className="text-white">{extraChance}%</span></div>
+        <div>💰 <span className="text-white">{goldBand}</span></div>
+        <div>🧭 <span className="text-white">{guildXpBand}</span></div>
+        <div>🎖 <span className="text-white">{charXpBand}</span></div>
+        <div>📦 <span className="text-white">{materialBand}</span></div>
+        <div>✨ <span className="text-white">{lootOddsLabel(extraChance)}</span></div>
       </div>
     </div>
   )
