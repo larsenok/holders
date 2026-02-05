@@ -1,6 +1,7 @@
 import type { Mission, MissionRun } from '../../types/Missions'
 import { useGuild } from '../../providers/GuildProvider'
 import { applyMissionBonuses, computeMissionBonuses } from '../../utils/bonusUtils'
+import { getMissionRequirement } from '../../utils/missionUtils'
 
 type Props = {
   mission: Mission
@@ -78,6 +79,11 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
   const { adventurers } = useGuild()
   const bonuses = computeMissionBonuses(adventurers)
   const m = applyMissionBonuses(mission, bonuses)
+  const { requiredLevel, requiredCount } = getMissionRequirement(mission)
+  const eligibleCount = adventurers.filter(
+    (adv) => adv.status === 'idle' && adv.level >= requiredLevel
+  ).length
+  const canStart = !locked && eligibleCount >= requiredCount
 
   const elapsed = active ? getElapsed(active.startedAt) : 0
   const remaining = Math.max(m.duration - elapsed, 0)
@@ -93,58 +99,70 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
 
   return (
     <div
-      className={`rounded p-4 bg-[#1e1a18] text-sm text-white font-sans flex justify-between gap-4 ${
-        isDone ? 'border border-[#d97706]' : 'border border-red-800'
+      className={`rounded-lg p-4 text-sm text-slate-100 font-sans flex justify-between gap-4 border ${
+        isDone ? 'border-emerald-500/50 bg-slate-950/70' : 'border-slate-700/80 bg-slate-950/50'
       }`}
     >
       {/* LEFT SIDE */}
       <div className="flex-1 space-y-1">
         {/* Title + Unique */}
         <div className="flex justify-between items-center">
-          <div className="text-red-400 text-lg font-bold tracking-wide">
+          <div className="text-slate-100 text-lg font-semibold tracking-wide">
             {mission.name}
           </div>
           {mission.unique && (
-            <div className="text-yellow-300 text-xs font-mono">⭐ Unique</div>
+            <div className="text-amber-200 text-xs font-mono">⭐ Unique</div>
           )}
         </div>
 
         {/* Metadata */}
-        <div className="text-xs text-gray-300 font-mono">
+        <div className="text-xs text-slate-300 font-mono">
           Area: <span className={`${areaColor(mission.area)} font-semibold`}>{mission.area}</span>
         </div>
-        <div className="text-xs text-gray-300 font-mono">
-          Type: <span className="text-white">{mission.type}</span>
+        <div className="text-xs text-slate-300 font-mono">
+          Type: <span className="text-slate-100">{mission.type}</span>
         </div>
-        <div className="text-xs text-gray-400 font-mono">
-          ⏱ Pace: <span className="text-white">{durationLabel(m.duration)}</span>
-          <span className="text-gray-500"> ({formatDuration(m.duration)})</span>
+        <div className="text-xs text-slate-400 font-mono">
+          ⏱ Pace: <span className="text-slate-100">{durationLabel(m.duration)}</span>
+          <span className="text-slate-500"> ({formatDuration(m.duration)})</span>
         </div>
-        <div className="text-xs text-amber-100 font-mono">
+        <div className="text-xs text-amber-100/80 font-mono">
           {rumorBlurb(mission.area, mission.type)}
+        </div>
+        <div className="text-xs text-slate-400 font-mono">
+          Requires <span className="text-slate-200">{requiredCount}</span> adventurer{requiredCount > 1 ? 's' : ''} • lvl{' '}
+          <span className="text-slate-200">{requiredLevel}+</span>
+          <span className={`ml-2 ${canStart ? 'text-emerald-300' : 'text-amber-300'}`}>
+            {eligibleCount} available
+          </span>
         </div>
 
         {bonusTags.length > 0 && (
-          <div className="text-xs text-amber-200 font-mono">
+          <div className="text-xs text-amber-200/80 font-mono">
             {locked ? 'Effects locked: ' : ''}{bonusTags.join(' ')}
           </div>
         )}
 
         {/* Action */}
         {active ? (
-          <div className="text-xs text-gray-400 font-mono pt-1">
+          <div className="text-xs text-slate-400 font-mono pt-1">
             {isDone ? (
-              <span className="text-green-300 font-semibold">✅ Complete</span>
+              <span className="text-emerald-300 font-semibold">✅ Complete</span>
             ) : (
               <>⏳ {formatDuration(remaining)} left</>
             )}
           </div>
         ) : (
           <div className="mt-2 flex items-center gap-2">
-            {completed && <span className="text-green-400 font-mono">Completed</span>}
+            {completed && <span className="text-emerald-400 font-mono">Completed</span>}
             <button
               onClick={() => startMission(mission.id)}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-white text-xs font-mono"
+              disabled={!canStart}
+              className={`px-3 py-1 rounded text-xs font-mono transition ${
+                canStart
+                  ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                  : 'bg-slate-800 text-slate-400 cursor-not-allowed'
+              }`}
             >
               ▶ Commit Party
             </button>
@@ -153,12 +171,12 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
       </div>
 
       {/* RIGHT SIDE */}
-      <div className="w-32 flex flex-col justify-center items-end text-xs text-yellow-200 font-mono space-y-1">
-        <div>💰 <span className="text-white">{goldBand}</span></div>
-        <div>🧭 <span className="text-white">{guildXpBand}</span></div>
-        <div>🎖 <span className="text-white">{charXpBand}</span></div>
-        <div>📦 <span className="text-white">{materialBand}</span></div>
-        <div>✨ <span className="text-white">{lootOddsLabel(extraChance)}</span></div>
+      <div className="w-32 flex flex-col justify-center items-end text-xs text-slate-300 font-mono space-y-1">
+        <div>💰 <span className="text-slate-100">{goldBand}</span></div>
+        <div>🧭 <span className="text-slate-100">{guildXpBand}</span></div>
+        <div>🎖 <span className="text-slate-100">{charXpBand}</span></div>
+        <div>📦 <span className="text-slate-100">{materialBand}</span></div>
+        <div>✨ <span className="text-slate-100">{lootOddsLabel(extraChance)}</span></div>
       </div>
     </div>
   )

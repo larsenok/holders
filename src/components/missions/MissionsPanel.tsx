@@ -4,7 +4,7 @@ import type { MissionRun, Mission } from '../../types/Missions';
 import MissionModal from './MissionModal';
 import ActiveMissionCard from './ActiveMissionCard';
 import { areaImages, areas, defaultTypes } from '../../data/areas';
-import { resolveMissionMeta, getElapsed, pickWeightedItem } from '../../utils/missionUtils';
+import { resolveMissionMeta, getElapsed, pickWeightedItem, getMissionRequirement, pickRandomAdventurers } from '../../utils/missionUtils';
 import { computeMissionBonuses, applyMissionBonuses } from '../../utils/bonusUtils';
 import { events } from '../../data/events';
 import { useUnlocks } from '../../hooks/useUnlocks';
@@ -20,10 +20,11 @@ type Props = {
 };
 
 export default function MissionsPanel({ size = 'md' }: Props) {
-  const { increaseXp, addGold, addInventoryItem, addCharacterXp, guildStats, incrementMissionCount, equippedTomeIds, adventurers, guildStash, updateGuildStash, updateGuildStats, recordMilestone, maybeSpawnVisitor } = useGuild();
+  const { increaseXp, addGold, addInventoryItem, addCharacterXp, guildStats, incrementMissionCount, equippedTomeIds, adventurers, guildStash, updateGuildStash, updateGuildStats, recordMilestone, maybeSpawnVisitor, updateAdventurer } = useGuild();
   const { unlock } = useAchievements();
   const { setUnlocked } = useUnlocks();
   const [open, setOpen] = useState(false);
+  const [clearing, setClearing] = useState<Record<string, boolean>>({});
 
   const [running, setRunning] = useState<Record<string, MissionRun>>(() => {
     try {
@@ -71,18 +72,41 @@ export default function MissionsPanel({ size = 'md' }: Props) {
   const bonuses = useMemo(() => computeMissionBonuses(adventurers), [adventurers]);
 
   const startMission = (id: string) => {
-    const snapshot = computeTomeSnapshot(equippedTomeIds)
-    setRunning(prev => ({
+    const meta =
+      resolveMissionMeta(areas, defaultTypes, id) ||
+      eventMissions.find((m) => m.id === id);
+    if (!meta) return;
+
+    const { requiredLevel, requiredCount } = getMissionRequirement(meta);
+    const eligible = adventurers.filter(
+      (a) => a.status === 'idle' && a.level >= requiredLevel
+    );
+    if (eligible.length < requiredCount) return;
+
+    const selected = pickRandomAdventurers(eligible, requiredCount);
+    selected.forEach((adv) => updateAdventurer(adv.id, { status: 'onMission' }));
+
+    const snapshot = computeTomeSnapshot(equippedTomeIds);
+    setRunning((prev) => ({
       ...prev,
-      [id]: { id, startedAt: Date.now(), tomeSnapshot: snapshot },
+      [id]: {
+        id,
+        startedAt: Date.now(),
+        tomeSnapshot: snapshot,
+        adventurerIds: selected.map((adv) => adv.id),
+      },
     }));
   };
 
   const clearMission = (id: string) => {
+    if (clearing[id]) return;
+    const run = running[id];
+    if (!run) return;
+    setClearing((prev) => ({ ...prev, [id]: true }));
     const mission = activeMissions.find((m) => m.id === id);
     if (mission) {
-      const run = running[id];
       const snap = run?.tomeSnapshot;
+      const assignedIds = run?.adventurerIds || [];
       const goldMult = guildStats.missionGoldMult && Date.now() < (guildStats.missionGoldMultExpires || 0) ? guildStats.missionGoldMult : 1;
       const passiveGold = guildStats.passiveGoldBonus || 0;
       const gold = Math.floor(mission.goldReward * (snap?.goldMult ?? 1) * goldMult) + passiveGold;
@@ -91,7 +115,8 @@ export default function MissionsPanel({ size = 'md' }: Props) {
       if ((guildStats.missionsCompleted || 0) === 0) recordMilestone('first_mission', mission.area);
       increaseXp(xp);
       addGold(gold);
-      addCharacterXp(charXp);
+      addCharacterXp(charXp, assignedIds);
+      assignedIds.forEach((advId) => updateAdventurer(advId, { status: 'idle' }));
       incrementMissionCount(mission.area);
 
       const completed = (guildStats.missionsCompleted || 0) + 1;
@@ -212,6 +237,11 @@ export default function MissionsPanel({ size = 'md' }: Props) {
           delete updated[id];
           return updated;
         });
+        setClearing((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
         startAgain();
       }, 600);
     } else {
@@ -219,6 +249,11 @@ export default function MissionsPanel({ size = 'md' }: Props) {
         const updated = { ...prev };
         delete updated[id];
         return updated;
+      });
+      setClearing((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
       });
       startAgain();
     }
@@ -234,10 +269,11 @@ export default function MissionsPanel({ size = 'md' }: Props) {
             ...applyMissionBonuses(meta, bonuses),
             startedAt: run.startedAt,
             tomeSnapshot: run.tomeSnapshot || computeTomeSnapshot([]),
+            adventurerIds: run.adventurerIds || [],
           }
         : null;
     })
-    .filter(Boolean) as (Mission & { startedAt: number; tomeSnapshot: ReturnType<typeof computeTomeSnapshot> })[];
+    .filter(Boolean) as (Mission & { startedAt: number; tomeSnapshot: ReturnType<typeof computeTomeSnapshot>; adventurerIds: string[] })[];
 
   useEffect(() => {
     activeMissions.forEach(m => {
@@ -255,33 +291,33 @@ export default function MissionsPanel({ size = 'md' }: Props) {
         className="missions-panel"
         onClick={() => setOpen(true)}
         onMouseOver={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #d97706, #92400e)';
-          e.currentTarget.style.boxShadow = '0 4px 0 0 rgba(0, 0, 0, 0.4)';
+          e.currentTarget.style.background = 'linear-gradient(135deg, #334155, #0f172a)';
+          e.currentTarget.style.boxShadow = '0 3px 0 0 rgba(0, 0, 0, 0.35)';
         }}
         onMouseOut={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #b45309, #78350f)';
-          e.currentTarget.style.boxShadow = '0 6px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)';
+          e.currentTarget.style.background = 'linear-gradient(135deg, #1f2937, #0f172a)';
+          e.currentTarget.style.boxShadow = '0 4px 0 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08)';
         }}
         onMouseDown={(e) => {
           e.currentTarget.style.transform = 'translateY(2px)';
-          e.currentTarget.style.boxShadow = '0 2px 0 0 rgba(0, 0, 0, 0.4), inset 0 3px 4px rgba(0, 0, 0, 0.6)';
-          e.currentTarget.style.background = 'linear-gradient(135deg, #854d0e, #713f12)';
+          e.currentTarget.style.boxShadow = '0 2px 0 0 rgba(0, 0, 0, 0.35), inset 0 3px 4px rgba(0, 0, 0, 0.5)';
+          e.currentTarget.style.background = 'linear-gradient(135deg, #1f2937, #111827)';
         }}
         onMouseUp={(e) => {
           e.currentTarget.style.transform = '';
-          e.currentTarget.style.boxShadow = '0 6px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)';
-          e.currentTarget.style.background = 'linear-gradient(135deg, #b45309, #78350f)';
+          e.currentTarget.style.boxShadow = '0 4px 0 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08)';
+          e.currentTarget.style.background = 'linear-gradient(135deg, #1f2937, #0f172a)';
         }}
         onFocus={(e) => {
           e.currentTarget.style.outline = 'none';
-          e.currentTarget.style.border = '4px solid #451a03';
+          e.currentTarget.style.border = '1px solid rgba(148, 163, 184, 0.8)';
         }}
         onBlur={(e) => {
           e.currentTarget.style.outline = 'none';
-          e.currentTarget.style.border = '4px solid #451a03';
+          e.currentTarget.style.border = '1px solid rgba(71, 85, 105, 0.7)';
         }}
       >
-        <div style={{ fontSize: sizeStyles[size].subTextSize, color: '#fef3c7', marginBottom: '4px' }}>
+        <div style={{ fontSize: sizeStyles[size].subTextSize, color: '#cbd5f5', marginBottom: '4px' }}>
           missions
         </div>
         <div
@@ -299,7 +335,7 @@ export default function MissionsPanel({ size = 'md' }: Props) {
             bottom: size === 'sm' ? '4px' : '8px',
             left: sizeStyles[size].padding.split(' ')[1],
             fontSize: sizeStyles[size].subTextSize,
-            color: '#fef3c7',
+            color: '#cbd5f5',
           }}
         >
           tap to manage assignments
@@ -307,7 +343,7 @@ export default function MissionsPanel({ size = 'md' }: Props) {
       </div>
 
       {activeMissions.length > 0 && (
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-3 rounded-xl border border-slate-800/80 bg-slate-950/40 p-3">
           {activeMissions.map((m) => {
             const goldMult = guildStats.missionGoldMult && Date.now() < (guildStats.missionGoldMultExpires || 0) ? guildStats.missionGoldMult : 1;
             const finalGold = Math.floor(m.goldReward * (m.tomeSnapshot?.goldMult ?? 1) * goldMult) + (guildStats.passiveGoldBonus || 0);
@@ -341,4 +377,3 @@ export default function MissionsPanel({ size = 'md' }: Props) {
     </>
   );
 }
-

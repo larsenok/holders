@@ -1,3 +1,4 @@
+import { areaLevelReqs } from "../data/areas";
 import { lootTable } from "../data/inventory";
 import { uniqueMissions } from "../data/missions";
 import { WeightedLootItem } from "../types/Guild";
@@ -28,6 +29,25 @@ export const resolveMissionMeta = (areas: Area[], defaultTypes: MissionType[], i
 }
 
 export const getElapsed = (start: number) => Math.floor((Date.now() - start) / 1000);
+
+export const getMissionRequirement = (mission: Mission) => {
+  const requiredLevel = areaLevelReqs[mission.area];
+  let requiredCount = 1;
+  if (mission.duration >= 90) requiredCount = 3;
+  else if (mission.duration >= 60) requiredCount = 2;
+  if (mission.unique) requiredCount = Math.max(requiredCount, 2);
+  return { requiredLevel, requiredCount };
+};
+
+export const pickRandomAdventurers = <T,>(pool: T[], count: number): T[] => {
+  if (count <= 0) return [];
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+};
 
 export function pickWeightedItem(): WeightedLootItem {
   const table = lootTable;

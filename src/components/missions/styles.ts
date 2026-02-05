@@ -16,26 +16,23 @@ export const getCardStyles = (
   width: '100%',
   padding: sizeStyles[size].padding,
   fontSize: sizeStyles[size].fontSize,
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase',
-  color: isDone ? '#fef9c3' : '#78350f', // yellow-100 for completed, yellow-900 for active
+  fontWeight: 600,
+  letterSpacing: '0.02em',
+  textTransform: 'none',
+  color: '#e2e8f0',
   background: isDone
-    ? 'linear-gradient(135deg, #b45309, #78350f)' // yellow-700 to yellow-900 for completed
-    : ACTIVE_COLOR, // #ffa774 for active
-  border: '4px solid #451a03', // Tailwind's yellow-900, fixed
+    ? 'linear-gradient(135deg, #1f2937, #111827)'
+    : ACTIVE_COLOR,
+  border: isDone ? '1px solid rgba(16, 185, 129, 0.6)' : '1px solid rgba(71, 85, 105, 0.7)',
   borderRadius: sizeStyles[size].borderRadius,
   cursor: isDone ? 'pointer' : 'default',
-  boxShadow: isDone
-    ? '0 6px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 0 8px 2px rgba(234, 179, 8, 0.5)' // yellow-500 glow
-    : '0 6px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 4px 0 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
   outline: 'none',
   WebkitTapHighlightColor: 'transparent',
   MozAppearance: 'none',
   WebkitAppearance: 'none',
   position: 'relative',
   fontFamily: 'monospace',
-  animation: isDone ? 'glow 3s ease-in-out infinite' : 'none',
 });
 
 export const getButtonStyles = (size: 'sm' | 'md' | 'lg' | 'xl'): CSSProperties => ({
@@ -63,20 +60,20 @@ export const panelStyles = (size: 'sm' | 'md' | 'lg' | 'xl'): CSSProperties => (
   width: '100%',
   padding: sizeStyles[size].padding,
   fontSize: sizeStyles[size].fontSize,
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase',
-  color: '#fef9c3', // Tailwind's yellow-100
-  background: 'linear-gradient(135deg, #b45309, #78350f)', // Use accent if available, else yellow-700 to yellow-900
-  border: '4px solid #451a03', // Tailwind's yellow-900, fixed
+  fontWeight: 600,
+  letterSpacing: '0.02em',
+  textTransform: 'none',
+  color: '#e2e8f0',
+  background: 'linear-gradient(135deg, #1f2937, #0f172a)',
+  border: '1px solid rgba(71, 85, 105, 0.7)',
   borderRadius: sizeStyles[size].borderRadius,
   cursor: 'pointer',
-  boxShadow: '0 6px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
-  transition: 'background 0.1s ease-in-out, box-shadow 0.1s ease-in-out, transform 0.1s ease-in-out',
+  boxShadow: '0 4px 0 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+  transition: 'background 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
   outline: 'none',
   WebkitTapHighlightColor: 'transparent',
   MozAppearance: 'none',
   WebkitAppearance: 'none',
   position: 'relative',
-  fontFamily: 'monospace', // Retain font-mono
+  fontFamily: 'monospace',
 });

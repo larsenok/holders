@@ -18,38 +18,41 @@ export default function GuildMaterials() {
   const [showInventory, setShowInventory] = useState(false)
 
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-3 flex items-center justify-between gap-4 text-sm text-white">
-      {(Object.entries(guildStash.materials) as [MaterialType, number][]).map(
-        ([type, quantity]) => (
-          <div
-            key={type}
-            className="flex items-center gap-2 bg-gray-900 px-3 py-1 rounded shadow hover:bg-gray-700 transition hover:text-white transition cursor-help"
-            title={STASH_LABELS[type]}
-          >
+    <div className="bg-slate-950/70 border-2 border-slate-700/80 rounded-xl p-4 text-sm text-white space-y-3 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Inventory</div>
+        <HeavyButton size="sm" onClick={() => setShowInventory(true)}>
+          <div className="flex flex-row gap-2">
             <img
-              src={materialIcons[type]}
-              alt={type}
-              className="w-6 h-6"
+              src="/img/icon/chest_0.png"
+              className="w-5 h-5"
+              alt="Level"
             />
-            <span className="text-white font-semibold">{quantity}</span>
+            Open Stores
           </div>
-        )
-        
-      )}
-      <HeavyButton size="sm" onClick={() => setShowInventory(true)}>
-        <div className="flex flex-row gap-2">
-          <img
-            src="/img/icon/chest_0.png"
-            className="w-5 h-5"
-            alt="Level"
-          />
-          Inventory
-        </div>
-      </HeavyButton>
+        </HeavyButton>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {(Object.entries(guildStash.materials) as [MaterialType, number][]).map(
+          ([type, quantity]) => (
+            <div
+              key={type}
+              className="flex items-center gap-2 bg-slate-900/70 border border-slate-700/70 px-3 py-2 rounded-lg text-slate-100"
+              title={STASH_LABELS[type]}
+            >
+              <img
+                src={materialIcons[type]}
+                alt={type}
+                className="w-6 h-6"
+              />
+              <span className="font-semibold">{quantity}</span>
+            </div>
+          )
+        )}
+      </div>
       {showInventory && (
         <GuildInventoryModal onClose={() => setShowInventory(false)} />
       )}
     </div>
-    
   )
 }
