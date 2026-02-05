@@ -9,6 +9,7 @@ export default function Layout() {
   const location = useLocation();
   const { getEquipped } = useUnlocks();
   const { guildStats, rankUpVisible, setRankUpVisible } = useGuild();
+  const guildName = guildStats.name?.trim() || 'Iron Sigil';
 
   const mainBg = useMemo(() => getEquipped(), [getEquipped]);
   const accent = useMemo(() => getEquipped(true), [getEquipped]);
@@ -48,8 +49,8 @@ export default function Layout() {
 
       <footer className="w-full px-4 pb-2 pt-1 flex items-center justify-between text-sm text-pink-300 bg-gray-800">
         <h1 className="text-lg font-bold text-yellow-300 flex items-center gap-2">
-          <img src="/iron-sigil.svg" alt="Iron Sigil" className="w-6 h-6" />
-          Iron Sigil
+          <img src="/iron-sigil.svg" alt="Guild crest" className="w-6 h-6" />
+          {guildName}
         </h1>
         <div className="flex justify-center gap-4">
           {navigationItems.map(({ path, label }) => (
