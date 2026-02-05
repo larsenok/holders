@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tier palette placeholders */
+:root {
+  --tier1-bg: #1e293b;
+  --tier2-bg: #334155;
+  --tier3-bg: #475569;
+  --tier4-bg: #64748b;
+  --tier1-bg-image: none;
+  --tier2-bg-image: none;
+  --tier3-bg-image: none;
+  --tier4-bg-image: none;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+@keyframes particle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.1);
+  }
+}
+
+@keyframes itemPop {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes itemSplash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-itemSplash > div {
+  --rand-x: calc(0.5 - var(--rand) * 1);
+  --rand-y: calc(0.5 - var(--rand) * 1);
+}
+
+@keyframes sigilSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sigilPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes sigilEye {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(3px, -2px); }
+  40% { transform: translate(-4px, 3px); }
+  60% { transform: translate(4px, 2px); }
+  80% { transform: translate(-3px, -3px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Guild page theming */
+.guild-page {
+  position: relative;
+  transition: background 250ms ease, filter 250ms ease;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guild-page {
+    transition: none;
+  }
+}
+
+.guild-page.tier-1 { background: var(--tier1-bg); background-image: var(--tier1-bg-image); }
+.guild-page.tier-2 { background: var(--tier2-bg); background-image: var(--tier2-bg-image); }
+.guild-page.tier-3 { background: var(--tier3-bg); background-image: var(--tier3-bg-image); }
+.guild-page.tier-4 { background: var(--tier4-bg); background-image: var(--tier4-bg-image); }
+
+.guild-page.visitor-effect::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(255,255,200,0.15);
+  box-shadow: inset 0 0 120px rgba(0,0,0,0.6);
+  animation: visitor-fade 1s forwards;
+}
+
+@keyframes visitor-fade {
+  to { opacity: 0; }
+}
+
+.guild-page.celebrate {
+  animation: celebrate-nudge 0.6s ease;
+}
+
+@keyframes celebrate-nudge {
+  0%,100% { transform: none; }
+  30% { transform: translateY(-10px); }
+}
+
+.banner {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  width: 80%;
+  height: 80px;
+  background: rgba(255,255,255,0.1);
+  transform: translateX(-50%);
+  animation: banner-drop 0.6s forwards;
+}
+
+@keyframes banner-drop {
+  to { top: 0; }
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  opacity: 0.8;
+  animation: confetti-fall 1.2s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(120vh) rotate(720deg);
+    opacity: 0;
+  }
+}

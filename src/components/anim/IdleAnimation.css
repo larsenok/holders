@@ -1,0 +1,10 @@
+.idle-animation {
+  margin-top: 1.5em;
+  margin-bottom: 3em;
+  top: 10px;
+  left: 10px;
+  transform: scale(2);
+  transform-origin: top left;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
