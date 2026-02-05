@@ -17,22 +17,24 @@ npm run dev
 - Game state is stored in `localStorage` (guild name, stats, inventory). Clearing storage resets your guild.
 - The starter flow requires selecting an initial adventurer before the main app loads.
 
----
-
 ## Development notes
 
 ## VIKTIG
 
 - Må kunne SAMMENLIGNE med andre
 - Tallene må bli store
-- Lang tid
 - Visuelle tilbakemeldinger må være tydelige og tilfredsstillende
 - Bevisste handlinger gir bedre gevinst
 - Tid investert over evner tilegnet
 
+## Viktig for meg
+
+- Se tilfredsstillende ut
+- Tall og stats - generelt
+- Kunne bli overpowered i noen tilfeller
+
 ## Div
 - Auto-format inlines: Shift + Alt + F
-
 
 ## TODO
 
@@ -102,7 +104,6 @@ npm run dev
 - [ ] Research  Codex/lore unlocks      1–4 hrs Optional narrative impact
 - [ ] Camp Guard        Small resource gain     Ongoing + chance to prevent random camp events
 - [ ] Scouting  Unlocks fast travel     2–6 hrs Reveals shortcuts, clues
-- [ ] Foraging  Herbs, scraps   30 min – 2h     Boosts crafting pool
 - [ ] Mentor(?) Boost trainee XP        Variable        One idle boosts another in training
 
 ### Stash

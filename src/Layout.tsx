@@ -21,13 +21,11 @@ export default function Layout() {
   }, [setRankUpVisible]);
 
   const containerStyle = useMemo(() => {
-    const style: React.CSSProperties = {};
-    if (mainBg) {
-      style.backgroundColor = mainBg;
-    }
-    if (accent) {
-      style['--accent-color' as any] = accent;
-    }
+    const style = {
+      ...(mainBg && { backgroundColor: mainBg }),
+      ...(accent && { '--accent-color': accent }),
+    } as React.CSSProperties;
+
     return style;
   }, [mainBg, accent]);
 
