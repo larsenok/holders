@@ -1,5 +1,25 @@
-# IRON SIGIL
-Development notes for the Iron Sigil web app. See the repository README for setup instructions.
+# Iron Sigil
+An incremental guild-management game built with React + Vite.
+
+## Setup
+```bash
+npm install
+npm run dev
+```
+
+## Scripts
+- `npm run dev` — start the local dev server
+- `npm run build` — type-check and build the production bundle
+- `npm run lint` — run ESLint
+- `npm run preview` — preview the production build
+
+## Notes
+- Game state is stored in `localStorage` (guild name, stats, inventory). Clearing storage resets your guild.
+- The starter flow requires selecting an initial adventurer before the main app loads.
+
+---
+
+## Development notes
 
 ## VIKTIG
 

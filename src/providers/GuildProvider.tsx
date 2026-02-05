@@ -463,7 +463,7 @@ export function GuildProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(STORAGE_KEY)
     setAdventurers([])
     setTimeout(() => {
-      window.location.href = '/guild'
+      window.location.href = '/'
     }, 100)
   }
 
