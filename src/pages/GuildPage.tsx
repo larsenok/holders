@@ -8,7 +8,6 @@ import { usePreloadImages } from '../hooks/usePreloadImages'
 import { inventoryIcons } from '../data/inventory'
 import GuildHeader from '../components/guild/GuildHeader';
 import HeavyButton from '../components/ui/HeavyButton';
-import { generateRandomAdventurer } from '../data/adventurer';
 import CharacterList from '../components/character/CharacterList';
 import StartHint from '../components/ui/StartHint';
 import TomeShelf from '../components/guild/TomeShelf';
@@ -23,7 +22,7 @@ export default function GuildPage() {
   const { getEquipped } = useUnlocks();
   const accent = getEquipped(true);
   const [showRecruit, setShowRecruit] = useState(false);
-  const { addAdventurer, guildStats } = useGuild();
+  const { guildStats } = useGuild();
   const tier = useGuildTheme();
   const [visitorFx, setVisitorFx] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
@@ -70,19 +69,13 @@ export default function GuildPage() {
             <CharacterList />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <HeavyButton size="sm" onClick={() => addAdventurer(generateRandomAdventurer("S"))}>S</HeavyButton>
-            <HeavyButton size="sm" onClick={() => addAdventurer(generateRandomAdventurer("A"))}>A</HeavyButton>
-            <HeavyButton size="sm" onClick={() => addAdventurer(generateRandomAdventurer("B"))}>B</HeavyButton>
-            <HeavyButton size="sm" onClick={() => addAdventurer(generateRandomAdventurer("C"))}>C</HeavyButton>
-            <HeavyButton size="sm" onClick={() => addAdventurer(generateRandomAdventurer("D"))}>D</HeavyButton>
-            <HeavyButton size="sm" onClick={() => addAdventurer(generateRandomAdventurer("E"))}>E</HeavyButton>
-            {adventurers.length < maxAdventurers && (
+          {adventurers.length < maxAdventurers && (
+            <div className="flex flex-wrap gap-2">
               <HeavyButton onClick={() => setShowRecruit(true)} size="sm">
                 Recruit New Adventurer
               </HeavyButton>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
