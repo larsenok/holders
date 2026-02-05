@@ -29,7 +29,7 @@ type GuildContextType = {
   increaseRank: () => void
   increasePower: () => void
   increaseXp: (n: number) => void
-  addCharacterXp: (n: number) => void
+  addCharacterXp: (n: number, targetIds: string[]) => void
   incrementMissionCount: (area: Area) => void
   incrementTrainingCount: () => void
   recordMilestone: (event: string, area?: string) => void
@@ -224,8 +224,10 @@ export function GuildProvider({ children }: { children: React.ReactNode }) {
     }))
   }
 
-  const addCharacterXp = (n: number) => {
+  const addCharacterXp = (n: number, targetIds: string[]) => {
+    if (targetIds.length === 0) return
     const updated = adventurers.map(a => {
+      if (!targetIds.includes(a.id)) return a
       if (a.status === 'training' || a.status === 'onTask') return a
       let newXp = (a.xp || 0) + n
       let newLevel = a.level

@@ -12,6 +12,7 @@ export type MissionRun = {
   id: string
   startedAt: number
   tomeSnapshot: TomeSnapshot
+  adventurerIds: string[]
 }
 
 export type Mission = {

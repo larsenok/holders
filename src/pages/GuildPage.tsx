@@ -54,21 +54,17 @@ export default function GuildPage() {
   }, [celebrate]);
 
   return (
-    <div className={`guild-page tier-${tier} ${visitorFx ? 'visitor-effect' : ''} ${celebrate ? 'celebrate' : ''} flex flex-col xl:flex-row w-full h-full text-white p-4 gap-4`}>
+    <div className={`guild-page tier-${tier} ${visitorFx ? 'visitor-effect' : ''} ${celebrate ? 'celebrate' : ''} flex flex-col xl:flex-row w-full h-full text-slate-100 p-6 gap-6`}>
       <div className="flex flex-col flex-1 gap-4">
-        <div className="border border-gray-700 rounded-xl p-4 shadow-md" style={{ backgroundColor: accent || 'var(--accent-color)' }}>
+        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-4 shadow-lg space-y-4" style={{ backgroundColor: accent || 'rgba(15, 23, 42, 0.8)' }}>
           <GuildHeader />
-
-          <div className="mb-3">
-            <GuildMaterials />
-          </div>
-
+          <GuildMaterials />
           <GuildBonuses />
+        </section>
 
-          <div className="flex flex-row items-start gap-4">
-            <CharacterList />
-          </div>
-
+        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-4 shadow-lg space-y-3">
+          <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Adventurers</div>
+          <CharacterList />
           {adventurers.length < maxAdventurers && (
             <div className="flex flex-wrap gap-2">
               <HeavyButton onClick={() => setShowRecruit(true)} size="sm">
@@ -76,14 +72,17 @@ export default function GuildPage() {
               </HeavyButton>
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {/* Column: Missions */}
-      <div className="xl:w-1/3 w-full relative">
-        <TomeShelf />
-        <StatsStrip />
-        <MissionsPanel />
+      <div className="xl:w-1/3 w-full relative flex flex-col gap-4">
+        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-4 shadow-lg space-y-4">
+          <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Operations</div>
+          <TomeShelf />
+          <StatsStrip />
+          <MissionsPanel />
+        </section>
         {shouldShowStartHint && <StartHint />}
       </div>
       <Visitor />
