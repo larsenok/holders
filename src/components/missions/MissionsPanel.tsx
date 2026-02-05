@@ -352,7 +352,12 @@ export default function MissionsPanel({ size = 'md' }: Props) {
               <ActiveMissionCard
                 key={m.id}
                 mission={m}
-                active={{ id: m.id, startedAt: m.startedAt, tomeSnapshot: m.tomeSnapshot }}
+                active={{
+                  id: m.id,
+                  startedAt: m.startedAt,
+                  tomeSnapshot: m.tomeSnapshot,
+                  adventurerIds: m.adventurerIds,
+                }}
                 getElapsed={getElapsed}
                 onClear={clearMission}
                 effectTags={getTomeEffectTags(m.tomeSnapshot.ids)}
