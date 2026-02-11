@@ -38,19 +38,19 @@ export default function Layout() {
 
   return (
     <div
-      className="w-screen h-screen text-white flex flex-col overflow-hidden"
+      className="w-full min-h-[100dvh] text-white flex flex-col overflow-x-hidden"
       style={containerStyle}
     >
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 min-h-0">
         <Outlet />
       </div>
 
-      <footer className="w-full px-3 py-2 md:px-4 md:pb-2 md:pt-1 flex flex-col gap-2 md:flex-row md:items-center md:justify-between text-sm text-pink-300 bg-gray-800">
+      <footer className="w-full px-3 py-1.5 md:px-4 md:pb-2 md:pt-1 flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between text-sm text-pink-300 bg-gray-800/95">
         <h1 className="text-base md:text-lg font-bold text-yellow-300 flex items-center gap-2">
           <img src="/iron-sigil.svg" alt="Guild crest" className="w-6 h-6" />
           {guildName}
         </h1>
-        <div className="flex flex-wrap justify-center md:justify-end gap-2 md:gap-4 w-full md:w-auto">
+        <div className="flex flex-wrap justify-center md:justify-end gap-1.5 md:gap-3 w-full md:w-auto">
           {navigationItems.map(({ path, label }) => (
             <LinkButton 
               key={path}
