@@ -99,7 +99,7 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
 
   return (
     <div
-      className={`rounded-lg p-4 text-sm text-slate-100 font-sans flex justify-between gap-4 border ${
+      className={`rounded-lg p-3 sm:p-4 text-sm text-slate-100 font-sans flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-4 border ${
         isDone ? 'border-emerald-500/50 bg-slate-950/70' : 'border-slate-700/80 bg-slate-950/50'
       }`}
     >
@@ -107,7 +107,7 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
       <div className="flex-1 space-y-1">
         {/* Title + Unique */}
         <div className="flex justify-between items-center">
-          <div className="text-slate-100 text-lg font-semibold tracking-wide">
+          <div className="text-slate-100 text-base sm:text-lg font-semibold tracking-wide">
             {mission.name}
           </div>
           {mission.unique && (
@@ -171,7 +171,7 @@ export default function MissionCard({ mission, active, getElapsed, startMission,
       </div>
 
       {/* RIGHT SIDE */}
-      <div className="w-32 flex flex-col justify-center items-end text-xs text-slate-300 font-mono space-y-1">
+      <div className="w-full sm:w-32 flex flex-row sm:flex-col justify-start sm:justify-center items-start sm:items-end text-xs text-slate-300 font-mono gap-3 sm:gap-1 flex-wrap">
         <div>💰 <span className="text-slate-100">{goldBand}</span></div>
         <div>🧭 <span className="text-slate-100">{guildXpBand}</span></div>
         <div>🎖 <span className="text-slate-100">{charXpBand}</span></div>

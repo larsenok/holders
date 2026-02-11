@@ -11,8 +11,8 @@ type Props = {
 export default function LinkButton({ to, label, active }: Props) {
   const baseStyles: React.CSSProperties = {
     display: 'inline-block',
-    padding: '8px 12px', // Compact for footer
-    fontSize: '16px', // Slightly smaller than HeavyButton
+    padding: '6px 10px', // Compact for footer and mobile nav
+    fontSize: '13px', // Better fit on narrow phones
     fontWeight: 700,
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
@@ -20,8 +20,9 @@ export default function LinkButton({ to, label, active }: Props) {
     background: active
       ? '#d89671ff' // Tailwind's amber-900 for active state
       : 'linear-gradient(135deg, #d97706, #b45309)', // amber-600 to yellow-700
-    border: '4px solid #451a03', // Tailwind's yellow-900, fixed
+    border: '3px solid #451a03', // Tailwind's yellow-900, fixed
     borderRadius: '6px', // Tighter than HeavyButton's 8px
+    textAlign: 'center',
     cursor: 'pointer',
     appearance: 'none',
     boxShadow: '0 5px 0 0 rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3)',
@@ -66,11 +67,11 @@ export default function LinkButton({ to, label, active }: Props) {
       }}
       onFocus={(e) => {
         e.currentTarget.style.outline = 'none';
-        e.currentTarget.style.border = '4px solid #451a03';
+        e.currentTarget.style.border = '3px solid #451a03';
       }}
       onBlur={(e) => {
         e.currentTarget.style.outline = 'none';
-        e.currentTarget.style.border = '4px solid #451a03';
+        e.currentTarget.style.border = '3px solid #451a03';
       }}
     >
       {label}

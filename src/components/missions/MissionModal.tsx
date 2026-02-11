@@ -37,7 +37,7 @@ export default function MissionModal({ running, startMission, onClose, completed
       onClick={onClose}
     >
       <div
-        className="bg-slate-950 border border-slate-700 p-6 w-[48rem] max-h-[85vh] overflow-auto space-y-6 rounded-xl shadow-xl"
+        className="bg-slate-950 border border-slate-700 p-3 sm:p-4 md:p-6 w-[95vw] md:w-[48rem] max-h-[90vh] overflow-auto space-y-4 sm:space-y-6 rounded-xl shadow-xl"
         onClick={e => e.stopPropagation()}
       >
         <h2 className="text-lg text-slate-100 font-semibold font-mono tracking-wide">
@@ -47,7 +47,7 @@ export default function MissionModal({ running, startMission, onClose, completed
         {/* Area Selection */}
         <div>
           <div className="text-sm text-slate-300 mb-1">Select Area</div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {areas.map(area => {
               const isActive = selectedArea === area
               const hasUncompletedUnique = uniqueMissions.some(
@@ -84,7 +84,7 @@ export default function MissionModal({ running, startMission, onClose, completed
         </div>
 
         {/* Mission Columns */}
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           {/* Repeatable */}
           <div className="flex-1 space-y-4">
             <div className="text-sm text-slate-300 font-mono mb-1">Repeatable</div>
