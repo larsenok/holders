@@ -40,9 +40,11 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
   min-height: 100vh;
 }
 
@@ -208,5 +210,11 @@ button:focus-visible {
   to {
     transform: translateY(120vh) rotate(720deg);
     opacity: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .guild-page {
+    overflow-x: hidden;
   }
 }

@@ -136,10 +136,10 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
   return (
     <>
       <div className="relative w-full text-left bg-gray-900 border border-pink-800 hover:border-pink-400 px-4 py-3 rounded mb-3 shadow-md transition-all duration-200 flex flex-col">
-        <div className="flex">
-          <div className="w-1/3 pr-2 flex flex-col justify-between">
-            <div className="text-base text-white font-bold flex items-center gap-2">
-              <span className="text-xl">{adventurer.name}</span>
+        <div className="flex flex-col md:flex-row gap-3 md:gap-0">
+          <div className="w-full md:w-1/3 md:pr-2 flex flex-col justify-between">
+            <div className="text-base text-white font-bold flex flex-wrap items-center gap-2">
+              <span className="text-lg sm:text-xl">{adventurer.name}</span>
 
               <span className="text-lg text-yellow-300 font-extrabold">
                 Lv {adventurer.level}
@@ -162,7 +162,7 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
                 onClick={() => setShowStats(true)}
                 size="sm"
               >
-                <img src="/img/actions/gear_0.png" alt="Inventory" className="w-8 h-8" />
+                <img src="/img/actions/gear_0.png" alt="Inventory" className="w-6 h-6 sm:w-8 sm:h-8" />
               </HeavyButton>
 
               {adventurers.length > 1 && (
@@ -217,7 +217,7 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
           </div>
 
           {/* MIDDLE THIRD — Power */}
-          <div className="w-1/3 flex items-center justify-center">
+          <div className="w-full md:w-1/3 flex items-center justify-start md:justify-center">
             <div
               className={`text-lg font-extrabold px-4 py-2 rounded bg-opacity-20 ${color}`}
               title="Power Level"
@@ -227,8 +227,8 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
           </div>
 
           {/* RIGHT THIRD — Buttons + Anim */}
-          <div className="w-1/3 flex flex-col items-end justify-between gap-2">
-            <div className="flex gap-1">
+          <div className="w-full md:w-1/3 flex flex-col md:items-end justify-between gap-2">
+            <div className="flex flex-wrap gap-1">
               {adventurer.status === 'idle' && !adventurer.readyToAssignStat && !isCooldownActive && (
                 <button
                   onClick={() => setShowTraining(true)}
@@ -269,7 +269,7 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
               </button>
             </div>
 
-            <div className="flex items-center min-w-[80px]">
+            <div className="flex items-center min-w-[80px] self-end md:self-auto">
               <IdleAnimation
                 animKey={adventurer.animKey || 'idle_0'}
                 style={{
@@ -286,7 +286,7 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
         {expanded && (
           <div className="mt-2 px-4 py-3 bg-black/40 rounded border border-gray-700 text-xs text-gray-200 space-y-2">
             <div className="font-bold text-white text-sm">Detailed Stats</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {STAT_ORDER.map((key) => (
                 <div
                   key={key}
