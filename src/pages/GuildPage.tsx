@@ -54,15 +54,15 @@ export default function GuildPage() {
   }, [celebrate]);
 
   return (
-    <div className={`guild-page tier-${tier} ${visitorFx ? 'visitor-effect' : ''} ${celebrate ? 'celebrate' : ''} flex flex-col xl:flex-row w-full h-full text-slate-100 p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 md:gap-6`}>
-      <div className="flex flex-col flex-1 gap-4">
-        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4" style={{ backgroundColor: accent || 'rgba(15, 23, 42, 0.8)' }}>
+    <div className={`guild-page tier-${tier} ${visitorFx ? 'visitor-effect' : ''} ${celebrate ? 'celebrate' : ''} flex flex-col xl:flex-row w-full min-h-full text-slate-100 p-2.5 sm:p-4 md:p-5 gap-2.5 sm:gap-4 md:gap-5`}>
+      <div className="flex flex-col flex-1 gap-3 sm:gap-4">
+        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-2.5 sm:space-y-3" style={{ backgroundColor: accent || 'rgba(15, 23, 42, 0.8)' }}>
           <GuildHeader />
           <GuildMaterials />
           <GuildBonuses />
         </section>
 
-        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-3">
+        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-2.5">
           <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Adventurers</div>
           <CharacterList />
           {adventurers.length < maxAdventurers && (
@@ -76,8 +76,8 @@ export default function GuildPage() {
       </div>
 
       {/* Column: Missions */}
-      <div className="xl:w-1/3 w-full relative flex flex-col gap-3 sm:gap-4">
-        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-3 sm:space-y-4">
+      <div className="xl:w-1/3 w-full relative flex flex-col gap-2.5 sm:gap-3.5">
+        <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-2.5 sm:space-y-3">
           <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Operations</div>
           <TomeShelf />
           <StatsStrip />
