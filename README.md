@@ -13,6 +13,12 @@ npm run dev
 - `npm run lint` — run ESLint
 - `npm run preview` — preview the production build
 
+
+## Agent-first workflow
+- Run `npm run agent:context` after structural changes (new/moved folders/files) to refresh `docs/agent-context.md`.
+- Follow repository conventions in `AGENTS.md` before making broad refactors.
+- For architecture-level updates, also update `docs/agent-first.md`.
+
 ## Notes
 - Game state is stored in `localStorage` (guild name, stats, inventory). Clearing storage resets your guild.
 - The starter flow requires selecting an initial adventurer before the main app loads.
