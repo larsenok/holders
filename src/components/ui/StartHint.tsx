@@ -1,9 +1,9 @@
 export default function StartHint() {
   return (
-    <div className="absolute left-0 right-0 mt-4 flex flex-col items-center text-yellow-200 pointer-events-none">
+    <div className="fixed left-2 right-2 bottom-20 sm:absolute sm:left-0 sm:right-0 sm:bottom-auto sm:mt-4 z-30 flex flex-col items-center text-yellow-200 pointer-events-none">
       <div className="text-3xl mb-1">↑</div>
-      <div className="text-lg font-semibold px-2 py-1 rounded border border-yellow-700 animate-glow">
-        Start your journey by sending adventurers on missions
+      <div className="text-sm sm:text-lg font-semibold px-2 py-1 rounded border border-yellow-700 bg-slate-900/90 text-center max-w-[22rem] animate-glow">
+        Start your journey: send adventurers on missions
       </div>
 
       <style>{`

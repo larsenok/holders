@@ -32,12 +32,12 @@ export default function GuildMaterials() {
           </div>
         </HeavyButton>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-5 md:overflow-visible md:pb-0">
         {(Object.entries(guildStash.materials) as [MaterialType, number][]).map(
           ([type, quantity]) => (
             <div
               key={type}
-              className="flex items-center gap-2 bg-slate-900/70 border border-slate-700/70 px-3 py-2 rounded-lg text-slate-100"
+              className="min-w-[106px] md:min-w-0 flex items-center gap-2 bg-slate-900/70 border border-slate-700/70 px-3 py-2 rounded-lg text-slate-100"
               title={STASH_LABELS[type]}
             >
               <img
