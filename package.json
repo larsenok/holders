@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "relaunch": "npm install && npm run build && npm run dev"
+    "relaunch": "npm install && npm run build && npm run dev",
+    "agent:context": "node scripts/generate-agent-context.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.3",
