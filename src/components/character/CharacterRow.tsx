@@ -21,6 +21,15 @@ type Props = {
   toggleExpand: () => void
 }
 
+const STAT_SHORT: Record<keyof Adventurer['stats'], string> = {
+  strength: 'STR',
+  agility: 'AGI',
+  defense: 'DEF',
+  wisdom: 'WIS',
+  magic: 'MAG',
+  dexterity: 'DEX',
+}
+
 export default function CharacterRow({ adventurer, expanded, toggleExpand }: Props) {
   const { updateAdventurer, removeAdventurer, adventurers, incrementTrainingCount, guildStats, recordMilestone } = useGuild()
   const { unlock } = useAchievements()
@@ -146,23 +155,23 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
               </span>
               <span className="text-xs text-gray-500">Eq. ({equippedCount}/4)</span>
 
-              <button
+              <HeavyButton
                 onClick={() => {
                   updateAdventurer(adventurer.id, {
                     level: adventurer.level + 1,
                     xp: 0,
                   })
                 }}
-                className="text-pink-400 hover:text-red-500"
+                size="sm"
               >
                 L+
-              </button>
+              </HeavyButton>
 
               <HeavyButton
                 onClick={() => setShowStats(true)}
                 size="sm"
               >
-                <img src="/img/actions/gear_0.png" alt="Inventory" className="w-6 h-6 sm:w-8 sm:h-8" />
+                <img src="/img/actions/gear_0.png" alt="Inventory" className="w-4 h-4 sm:w-5 sm:h-5" />
               </HeavyButton>
 
               {adventurers.length > 1 && (
@@ -185,28 +194,32 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
               {adventurer.status === 'training' ? 'Training...' : adventurer.status}
             </div>
 
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-yellow-300 font-bold">
-              {STAT_ORDER.map((key) => (
-                <div
-                  key={key}
-                  title={STAT_LABELS[key]}
-                  className="hover:text-white transition cursor-help"
-                >
-                  <span className="uppercase font-bold text-gray-400">{key.slice(0, 3)}</span>: {adventurer.stats[key]}
-                </div>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-yellow-300 font-bold">
+              {STAT_ORDER.map((key) => {
+                const value = adventurer.stats[key]
+                const pct = Math.min((value / 20) * 100, 100)
+                return (
+                  <div key={key} title={STAT_LABELS[key]} className="rounded-lg border border-slate-700/80 bg-slate-950/70 px-2 py-1.5">
+                    <div className="relative h-4 rounded bg-slate-800/80 overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500" style={{ width: `${pct}%` }} />
+                      <span className="absolute inset-0 flex items-center justify-center text-[11px] text-white font-extrabold">{value}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] tracking-[0.16em] text-center text-slate-300">{STAT_SHORT[key]}</div>
+                  </div>
+                )
+              })}
             </div>
 
             {adventurer.readyToAssignStat && trainingOptions && (
               <div className="mt-2 flex gap-2">
                 {trainingOptions.map((stat) => (
-                  <button
+                  <HeavyButton
                     key={stat}
                     onClick={() => assignStat(stat)}
-                    className="flex-1 px-2 py-1 text-xs font-bold bg-yellow-600 hover:bg-yellow-500 text-white rounded animate-pulse"
+                    size="sm"
                   >
                     +1 {stat}
-                  </button>
+                  </HeavyButton>
                 ))}
               </div>
             )}
@@ -216,7 +229,6 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
             )}
           </div>
 
-          {/* MIDDLE THIRD — Power */}
           <div className="w-full md:w-1/3 flex items-center justify-start md:justify-center">
             <div
               className={`text-lg font-extrabold px-4 py-2 rounded bg-opacity-20 ${color}`}
@@ -226,47 +238,45 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
             </div>
           </div>
 
-          {/* RIGHT THIRD — Buttons + Anim */}
           <div className="w-full md:w-1/3 flex flex-col md:items-end justify-between gap-2">
             <div className="flex flex-wrap gap-1">
               {adventurer.status === 'idle' && !adventurer.readyToAssignStat && !isCooldownActive && (
-                <button
+                <HeavyButton
                   onClick={() => setShowTraining(true)}
-                  className="px-2 py-1 bg-pink-700 hover:bg-pink-600 text-white rounded text-xs"
+                  size="sm"
                 >
                   Train
-                </button>
+                </HeavyButton>
               )}
 
               {adventurer.status === 'idle' && (
-                <button
+                <HeavyButton
                   onClick={() => setShowTask(true)}
-                  className="px-2 py-1 bg-blue-700 hover:bg-blue-600 text-white rounded text-xs"
+                  size="sm"
                 >
                   Task
-                </button>
+                </HeavyButton>
               )}
 
               {adventurer.status === 'onTask' && (
-                <button
+                <HeavyButton
                   onClick={() => stopTask()}
-                  className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs"
+                  size="sm"
                 >
                   Stop Task
-                </button>
+                </HeavyButton>
               )}
 
-              <button
+              <HeavyButton
                 onClick={toggleExpand}
-                className="px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded"
-                title={expanded ? 'Collapse Details' : 'Expand Details'}
+                size="sm"
               >
                 <img
                   src={`/img/actions/${expanded ? 'arrow_up_0' : 'arrow_down_0'}.png`}
                   alt="Toggle"
                   className="w-4 h-4"
                 />
-              </button>
+              </HeavyButton>
             </div>
 
             <div className="flex items-center min-w-[80px] self-end md:self-auto">
