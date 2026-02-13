@@ -14,6 +14,7 @@ import type { MaterialType } from '../../types/Guild';
 import { panelStyles, sizeStyles } from './styles';
 import { useAchievements } from '../../providers/AchievementsProvider';
 import { computeTomeSnapshot, getTomeEffectTags } from '../../utils/tomeUtils';
+import HeavyButton from '../ui/HeavyButton';
 
 type Props = {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -286,61 +287,31 @@ export default function MissionsPanel({ size = 'md' }: Props) {
 
   return (
     <>
-      <div
-        style={panelStyles("md")}
-        className="missions-panel"
-        onClick={() => setOpen(true)}
-        onMouseOver={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #334155, #0f172a)';
-          e.currentTarget.style.boxShadow = '0 3px 0 0 rgba(0, 0, 0, 0.35)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.background = 'linear-gradient(135deg, #1f2937, #0f172a)';
-          e.currentTarget.style.boxShadow = '0 4px 0 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08)';
-        }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = 'translateY(2px)';
-          e.currentTarget.style.boxShadow = '0 2px 0 0 rgba(0, 0, 0, 0.35), inset 0 3px 4px rgba(0, 0, 0, 0.5)';
-          e.currentTarget.style.background = 'linear-gradient(135deg, #1f2937, #111827)';
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = '';
-          e.currentTarget.style.boxShadow = '0 4px 0 0 rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08)';
-          e.currentTarget.style.background = 'linear-gradient(135deg, #1f2937, #0f172a)';
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.outline = 'none';
-          e.currentTarget.style.border = '1px solid rgba(148, 163, 184, 0.8)';
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.outline = 'none';
-          e.currentTarget.style.border = '1px solid rgba(71, 85, 105, 0.7)';
-        }}
-      >
-        <div style={{ fontSize: sizeStyles[size].subTextSize, color: '#cbd5f5', marginBottom: '4px' }}>
-          missions
+      <HeavyButton size="md" onClick={() => setOpen(true)}>
+        <div style={panelStyles("md")} className="missions-panel w-full text-left">
+          <div style={{ fontSize: sizeStyles[size].subTextSize, color: '#fef9c3', marginBottom: '4px' }}>
+            missions
+          </div>
+          <div
+            style={{
+              fontSize: sizeStyles[size].textSize,
+              maxHeight: size === 'sm' ? '48px' : '64px',
+              overflowY: 'auto',
+            }}
+          >
+            {activeMissions.length > 0 ? activeMissions.map((m) => m.name).join(', ') : 'All idle'}
+          </div>
+          <div
+            style={{
+              marginTop: '0.8rem',
+              fontSize: sizeStyles[size].subTextSize,
+              color: '#fde68a',
+            }}
+          >
+            Tap to manage assignments
+          </div>
         </div>
-        <div
-          style={{
-            fontSize: sizeStyles[size].textSize,
-            maxHeight: size === 'sm' ? '48px' : '64px',
-            overflowY: 'auto',
-          }}
-        >
-          {activeMissions.length > 0 ? activeMissions.map((m) => m.name).join(', ') : 'All idle'}
-        </div>
-        <div
-          style={{
-            marginTop: "2rem",
-            bottom: size === 'sm' ? '4px' : '8px',
-            left: sizeStyles[size].padding.split(' ')[1],
-            fontSize: sizeStyles[size].subTextSize,
-            color: '#cbd5f5',
-          }}
-        >
-          tap to manage assignments
-        </div>
-      </div>
+      </HeavyButton>
 
       {activeMissions.length > 0 && (
         <div className="mt-4 space-y-3 rounded-xl border border-slate-800/80 bg-slate-950/40 p-3">

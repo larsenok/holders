@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useGuild } from '../providers/GuildProvider';
 import { computeMissionBonuses } from '../utils/bonusUtils';
+import HeavyButton from './ui/HeavyButton';
 
 export default function GuildBonuses() {
   const { adventurers } = useGuild();
+  const [open, setOpen] = useState(false);
   const b = computeMissionBonuses(adventurers);
 
   const entries = [
@@ -24,30 +27,28 @@ export default function GuildBonuses() {
       value: b.guildXp,
       sign: '+',
     },
-    {
-      lore: 'Attunement to the arcane reveals hidden loot others miss',
-      label: 'Extra Loot',
-      value: b.extraLootChance,
-      sign: '+',
-    },
-    {
-      lore: 'Keen judgment and trade sense turns overlooked goods into gold',
-      label: 'Gold',
-      value: b.gold,
-      sign: '+',
-    },
   ];
 
   return (
-    <div className="space-y-1 mb-3">
-      {entries.map((e) => (
-        <div key={e.label}>
-          <div className="italic text-xs text-yellow-200">{e.lore}</div>
-          <div className="font-bold text-sm">
-            {e.label} {e.sign}{Math.round(e.value * 100)}%
-          </div>
+    <div className="rounded-xl border border-slate-700/70 bg-slate-950/60 p-2.5">
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Guild Stats</div>
+        <HeavyButton size="sm" onClick={() => setOpen((v) => !v)}>
+          <img src="/img/materials/star_0.png" className="w-4 h-4" alt="Guild stats" />
+        </HeavyButton>
+      </div>
+      {open && (
+        <div className="mt-2 space-y-2">
+          {entries.map((e) => (
+            <div key={e.label} className="rounded-lg bg-slate-900/70 border border-slate-700/60 px-2.5 py-2">
+              <div className="italic text-[11px] text-yellow-200 leading-tight">{e.lore}</div>
+              <div className="font-bold text-sm mt-1">
+                {e.label} {e.sign}{Math.round(e.value * 100)}%
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }

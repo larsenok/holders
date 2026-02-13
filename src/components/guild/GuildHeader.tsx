@@ -7,62 +7,47 @@ export default function GuildHeader() {
   const { guildStats, increaseXp } = useGuild();
 
   return (
-    <div className="w-full flex flex-col sm:flex-row justify-between items-center mb-4">
-
-      <div className="flex flex-row items-start">
-        <div className="flex justify-center items-center">
-          <FlameSprite />
+    <div className="w-full flex flex-col gap-3 mb-2">
+      <div className="sticky top-0 z-20 -mx-3 sm:mx-0 px-3 sm:px-0 pt-1 pb-2 bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-slate-900/70 rounded-b-xl sm:rounded-none">
+        <div className="relative">
+          <GuildXPBar size="lg" />
+          <div className="absolute -top-2 right-0 rounded-md border border-cyan-300/50 bg-slate-900/90 px-2 py-1 text-[10px] sm:text-xs font-black tracking-[0.18em] text-cyan-200">
+            LVL {guildStats.rank}
+          </div>
         </div>
-
-        {/* Name + XP Button wrapper */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:ml-4 mt-4 sm:mt-0 gap-4">
-          <h1 className="text-2xl font-bold tracking-wide text-left whitespace-nowrap">
-            {guildStats.name}
-          </h1>
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FlameSprite />
+            <h1 className="text-base sm:text-xl font-extrabold tracking-wide text-left">
+              {guildStats.name}
+            </h1>
+          </div>
           <HeavyButton onClick={() => increaseXp(20)} size="sm">X+</HeavyButton>
         </div>
       </div>
 
-      <GuildXPBar size="lg" />
-
-      {/* Stats in thirds */}
-      <div className="bg-black/40 p-4 rounded-lg grid grid-cols-3 gap-4 text-sm text-center w-full sm:w-auto mx-4">
-        <div className="flex flex-col items-center">
+      <div className="bg-black/40 p-3 rounded-lg grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-center w-full">
+        <div className="flex flex-col items-center rounded bg-slate-900/50 py-1.5">
           <div className="flex items-center gap-2">
-            <img
-              src="/img/materials/star_0.png"
-              className="w-5 h-5"
-              alt="Level"
-            />
-            <span className="text-white text-lg font-semibold">{guildStats.rank}</span>
+            <img src="/img/materials/star_0.png" className="w-4 h-4" alt="Level" />
+            <span className="text-white text-base font-semibold">{guildStats.rank}</span>
           </div>
+          <span className="text-[10px] tracking-[0.15em] text-slate-300">RANK</span>
         </div>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center rounded bg-slate-900/50 py-1.5">
           <div className="flex items-center gap-2">
-            <img
-              src="/img/materials/gold_0.png"
-              className="w-5 h-5"
-              alt="Gold"
-            />
-            <span className="text-yellow-400 text-lg font-semibold">
-              {guildStats.gold}
-            </span>
+            <img src="/img/materials/gold_0.png" className="w-4 h-4" alt="Gold" />
+            <span className="text-yellow-400 text-base font-semibold">{guildStats.gold}</span>
           </div>
+          <span className="text-[10px] tracking-[0.15em] text-slate-300">GOLD</span>
         </div>
-        <div className="flex flex-col items-center">
+        <div className="col-span-2 sm:col-span-1 flex flex-col items-center rounded bg-slate-900/50 py-1.5">
           <div className="flex items-center gap-2">
-            <img
-              src="/img/materials/power_0.png"
-              className="w-5 h-5"
-              alt="Power"
-            />
-            <span className="text-green-400 text-lg font-semibold">
-              {guildStats.power}
-            </span>
+            <img src="/img/materials/power_0.png" className="w-4 h-4" alt="Power" />
+            <span className="text-green-400 text-base font-semibold">{guildStats.power}</span>
           </div>
+          <span className="text-[10px] tracking-[0.15em] text-slate-300">POWER</span>
         </div>
-        
-   
       </div>
     </div>
   );

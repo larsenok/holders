@@ -22,30 +22,29 @@ export default function GuildMaterials() {
       <div className="flex items-center justify-between">
         <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Inventory</div>
         <HeavyButton size="sm" onClick={() => setShowInventory(true)}>
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 items-center">
             <img
               src="/img/icon/chest_0.png"
               className="w-5 h-5"
               alt="Level"
             />
-            Open Stores
           </div>
         </HeavyButton>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-5 md:overflow-visible md:pb-0">
+      <div className="grid grid-cols-5 gap-2">
         {(Object.entries(guildStash.materials) as [MaterialType, number][]).map(
           ([type, quantity]) => (
             <div
               key={type}
-              className="min-w-[106px] md:min-w-0 flex items-center gap-2 bg-slate-900/70 border border-slate-700/70 px-3 py-2 rounded-lg text-slate-100"
+              className="min-w-0 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 bg-slate-900/70 border border-slate-700/70 px-2 py-2 rounded-lg text-slate-100"
               title={STASH_LABELS[type]}
             >
               <img
                 src={materialIcons[type]}
                 alt={type}
-                className="w-6 h-6"
+                className="w-5 h-5"
               />
-              <span className="font-semibold">{quantity}</span>
+              <span className="font-semibold text-xs sm:text-sm">{quantity}</span>
             </div>
           )
         )}
