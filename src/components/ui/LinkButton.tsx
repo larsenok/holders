@@ -12,7 +12,7 @@ export default function LinkButton({ to, label, active }: Props) {
   const baseStyles: React.CSSProperties = {
     display: 'inline-block',
     padding: '6px 10px', // Compact for footer and mobile nav
-    fontSize: '13px', // Better fit on narrow phones
+    fontSize: '12px', // Better fit on narrow phones
     fontWeight: 700,
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
@@ -32,6 +32,9 @@ export default function LinkButton({ to, label, active }: Props) {
     MozAppearance: 'none',
     WebkitAppearance: 'none',
     textDecoration: 'none',
+    width: '100%',
+    whiteSpace: 'nowrap',
+    lineHeight: 1.1,
   };
 
   return (
