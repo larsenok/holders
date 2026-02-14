@@ -5,6 +5,12 @@ import { useUnlocks } from './hooks/useUnlocks';
 import { useGuild } from './providers/GuildProvider';
 import LevelUpModal from './components/ui/LevelUpModal';
 
+type NavigationItem = {
+  path: string;
+  label: string;
+  devOnly?: boolean;
+};
+
 export default function Layout() {
   const location = useLocation();
   const { getEquipped } = useUnlocks();
@@ -29,12 +35,23 @@ export default function Layout() {
     return style;
   }, [mainBg, accent]);
 
-  const navigationItems = useMemo(() => [
+  const navigationItems = useMemo<NavigationItem[]>(() => [
     { path: '/', label: 'Guild' },
     { path: '/store', label: 'Store' },
     { path: '/achievements', label: 'Trophies' },
-    { path: '/leaderboard', label: 'Leaderboard' }
+    { path: '/leaderboard', label: 'Leaderboard', devOnly: true },
   ], []);
+
+  const showLeaderboard = import.meta.env.VITE_SHOW_LEADERBOARD === 'true';
+  const visibleNavigationItems = useMemo(
+    () => navigationItems.filter((item) => !item.devOnly || showLeaderboard),
+    [navigationItems, showLeaderboard],
+  );
+
+  const navigationGridStyle = useMemo(
+    () => ({ gridTemplateColumns: `repeat(${visibleNavigationItems.length}, minmax(0, 1fr))` }),
+    [visibleNavigationItems.length],
+  );
 
   return (
     <div
@@ -54,8 +71,8 @@ export default function Layout() {
             <img src="/iron-sigil.svg" alt="Guild crest" className="w-6 h-6" />
             {guildName}
           </h1>
-          <div className="grid grid-cols-4 gap-2 w-full max-w-2xl">
-            {navigationItems.map(({ path, label }) => (
+          <div className="grid gap-2 w-full max-w-2xl" style={navigationGridStyle}>
+            {visibleNavigationItems.map(({ path, label }) => (
               <LinkButton
                 key={path}
                 to={path}
@@ -65,8 +82,8 @@ export default function Layout() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-0.5 md:hidden w-full">
-          {navigationItems.map(({ path, label }) => (
+        <div className="grid gap-0.5 md:hidden w-full" style={navigationGridStyle}>
+          {visibleNavigationItems.map(({ path, label }) => (
             <LinkButton
               key={path}
               to={path}
@@ -76,11 +93,11 @@ export default function Layout() {
           ))}
         </div>
       </footer>
-      
+
       {rankUpVisible && (
-        <LevelUpModal 
+        <LevelUpModal
           rank={guildStats.rank}
-          onClose={handleCloseRankUp} 
+          onClose={handleCloseRankUp}
         />
       )}
     </div>

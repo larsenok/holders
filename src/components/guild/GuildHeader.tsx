@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useGuild } from '../../providers/GuildProvider';
 import FlameSprite from '../ui/effects/FlameSprite';
 import HeavyButton from '../ui/HeavyButton';
@@ -20,7 +21,7 @@ const formatDate = (value?: number) => {
 export default function GuildHeader() {
   const { guildStats, increaseXp, adventurers } = useGuild();
   const showDevControls = import.meta.env.VITE_SHOW_DEV_CONTROLS === 'true';
-  const [selected, setSelected] = useState<StatKey>('gold');
+  const [expanded, setExpanded] = useState(false);
 
   const details = useMemo(() => {
     const createdAt = Number(localStorage.getItem('guild_created_at') || 0);
@@ -56,50 +57,50 @@ export default function GuildHeader() {
             LVL {guildStats.rank}
           </div>
         </div>
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FlameSprite />
-            <h1 className="text-base sm:text-xl font-extrabold tracking-wide text-left">
-              {guildStats.name}
-            </h1>
-          </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            className="flex-1 flex items-center justify-between rounded-md border border-slate-700/80 bg-slate-900/65 px-3 py-2 text-left hover:border-cyan-400/50 transition"
+            onClick={() => setExpanded(prev => !prev)}
+          >
+            <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.15em] text-cyan-100">Guild overview</span>
+            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
           {showDevControls && <HeavyButton onClick={() => increaseXp(20)} size="sm">X+</HeavyButton>}
         </div>
       </div>
 
-      <div className="bg-black/40 p-2.5 rounded-lg space-y-2 w-full">
-        <div className="grid grid-cols-3 gap-2 text-center w-full">
-          {(Object.keys(statMeta) as StatKey[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSelected(key)}
-              className={`flex flex-col items-center rounded py-1.5 border transition ${selected === key ? 'bg-slate-900/80 border-cyan-400/50' : 'bg-slate-900/50 border-transparent hover:border-slate-600'}`}
-            >
-              <div className="flex items-center gap-2">
-                <img src={statMeta[key].icon} className="w-4 h-4" alt={statMeta[key].label} />
-                <span className={`text-base font-semibold ${statMeta[key].valueClass}`}>{guildStats[key].toLocaleString()}</span>
-              </div>
-              <span className="text-[10px] tracking-[0.15em] text-slate-300 uppercase">{statMeta[key].label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="rounded-md border border-slate-700/80 bg-slate-950/60 px-2.5 py-2">
-          <div className="mb-1.5 flex items-center gap-2 text-xs font-mono uppercase tracking-[0.14em] text-cyan-200">
-            <img src={statMeta[selected].icon} className="w-3.5 h-3.5" alt={statMeta[selected].label} />
-            {statMeta[selected].label} details
+      {expanded && (
+        <div className="bg-black/40 p-2.5 rounded-lg space-y-2 w-full">
+          <div className="flex items-center gap-2 rounded-md border border-slate-700/80 bg-slate-950/60 px-2.5 py-2">
+            <FlameSprite />
+            <h1 className="text-sm sm:text-lg font-extrabold tracking-wide text-left text-slate-100">{guildStats.name}</h1>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs">
-            {details[selected].map((item) => (
-              <div key={item.label} className="rounded bg-slate-900/70 px-2 py-1.5">
-                <div className="text-slate-400">{item.label}</div>
-                <div className="text-slate-100 font-semibold truncate" title={item.value}>{item.value}</div>
+
+          <div className="grid grid-cols-1 gap-2">
+            {(Object.keys(statMeta) as StatKey[]).map((key) => (
+              <div key={key} className="rounded-md border border-slate-700/80 bg-slate-950/60 px-2.5 py-2">
+                <div className="mb-1.5 flex items-center gap-2 text-xs font-mono uppercase tracking-[0.14em] text-cyan-200">
+                  <img src={statMeta[key].icon} className="w-3.5 h-3.5" alt={statMeta[key].label} />
+                  {statMeta[key].label}
+                  <span className={`text-sm font-semibold normal-case tracking-normal ${statMeta[key].valueClass}`}>
+                    {guildStats[key].toLocaleString()}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs">
+                  {details[key].map((item) => (
+                    <div key={item.label} className="rounded bg-slate-900/70 px-2 py-1.5">
+                      <div className="text-slate-400">{item.label}</div>
+                      <div className="text-slate-100 font-semibold truncate" title={item.value}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
