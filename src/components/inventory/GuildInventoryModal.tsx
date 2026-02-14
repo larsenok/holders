@@ -19,7 +19,7 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
   const [confirmData, setConfirmData] = useState<null | { message: string, onConfirm: () => void }>(null)
 
   const items = itemKeys.map(key => [key, guildInventory[key]] as [InventoryItemType, number])
-  const slots = Array.from({ length: 25 }, (_, i) => items[i] || null)
+  const slots = Array.from({ length: 24 }, (_, i) => items[i] || null)
 
   const handleSale = () => {
     setTriggerSplash(true)
@@ -102,21 +102,21 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Inventory Left */}
           <div className="w-full lg:w-[28rem] lg:flex-shrink-0">
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 mb-4">
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 mb-4">
               {slots.map((slot, i) => (
                 <div
                   key={i}
-                  className="w-full h-24 sm:h-24 bg-gray-900 rounded flex flex-col items-center justify-center text-center relative border border-gray-700 group"
+                  className="w-full h-20 sm:h-24 bg-gray-900 rounded flex flex-col items-center justify-center text-center relative border border-gray-700 group"
                 >
                   {slot && slot[1] > 0 && (
                     <>
-                      <img src={inventoryIcons[slot[0]]} alt={slot[0]} className="w-12 h-12" />
-                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-black text-sm font-bold px-1 py-0.5 rounded shadow">
+                      <img src={inventoryIcons[slot[0]]} alt={slot[0]} className="w-9 h-9 sm:w-12 sm:h-12" />
+                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] sm:text-sm font-bold px-1 py-0.5 rounded shadow">
                         x{slot[1]}
                       </div>
                       <button
                         onClick={() => handleSellItem(slot[0], slot[1])}
-                        className="mt-1 px-1.5 py-0.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black font-bold whitespace-nowrap text-[11px] sm:text-[13px]"
+                        className="mt-1 px-1 py-0.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black font-bold whitespace-nowrap text-[10px] sm:text-[13px]"
                       >
                         <span className="text-[80%]">Sell</span> ({itemValues[slot[0]] * slot[1]}g)
                       </button>
