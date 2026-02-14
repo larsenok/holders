@@ -78,10 +78,14 @@ export default function GuildPage() {
       {/* Column: Missions */}
       <div className="xl:w-1/3 w-full relative flex flex-col gap-2.5 sm:gap-3.5">
         <section className="rounded-2xl border border-slate-700/70 bg-slate-900/70 p-3 sm:p-4 shadow-lg space-y-2.5 sm:space-y-3">
-          <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Operations</div>
-          <TomeShelf />
-          <StatsStrip />
-          <MissionsPanel />
+          <div className="text-xs uppercase tracking-[0.2em] text-slate-300 font-mono">Operations Hub</div>
+          <div className="grid gap-2">
+            <MissionsPanel />
+            <div className="grid grid-cols-1 gap-2">
+              <StatsStrip />
+              <TomeShelf />
+            </div>
+          </div>
         </section>
         {shouldShowStartHint && <StartHint />}
       </div>
