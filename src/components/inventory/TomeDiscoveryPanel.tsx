@@ -30,7 +30,7 @@ export default function TomeDiscoveryPanel() {
   }
 
   return (
-    <div className="w-80 max-h-[28rem] overflow-y-auto border-l border-yellow-700 pl-4 flex flex-col justify-between">
+    <div className="w-full lg:w-80 lg:max-h-[28rem] overflow-y-visible lg:overflow-y-auto lg:border-l border-yellow-700 lg:pl-4 flex flex-col justify-between">
       <div>
         <h2 className="text-yellow-300 text-lg font-semibold mb-3">Tome Rack</h2>
         <TomeRack discovered={discovered} />

@@ -10,9 +10,8 @@ type Props = {
 
 export default function LinkButton({ to, label, active }: Props) {
   const baseStyles: React.CSSProperties = {
-    display: 'inline-block',
-    padding: '6px 10px', // Compact for footer and mobile nav
-    fontSize: '12px', // Better fit on narrow phones
+    padding: '8px 6px', // Mobile-first tap target and tighter horizontal fit
+    fontSize: '11px', // Prevent long labels from overflowing on narrow phones
     fontWeight: 700,
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
@@ -20,8 +19,8 @@ export default function LinkButton({ to, label, active }: Props) {
     background: active
       ? '#d89671ff' // Tailwind's amber-900 for active state
       : 'linear-gradient(135deg, #d97706, #b45309)', // amber-600 to yellow-700
-    border: '3px solid #451a03', // Tailwind's yellow-900, fixed
-    borderRadius: '6px', // Tighter than HeavyButton's 8px
+    border: '2px solid #451a03', // Keep visual weight while saving horizontal space
+    borderRadius: '6px',
     textAlign: 'center',
     cursor: 'pointer',
     appearance: 'none',
@@ -35,6 +34,10 @@ export default function LinkButton({ to, label, active }: Props) {
     width: '100%',
     whiteSpace: 'nowrap',
     lineHeight: 1.1,
+    minHeight: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   return (
@@ -70,11 +73,11 @@ export default function LinkButton({ to, label, active }: Props) {
       }}
       onFocus={(e) => {
         e.currentTarget.style.outline = 'none';
-        e.currentTarget.style.border = '3px solid #451a03';
+        e.currentTarget.style.border = '2px solid #451a03';
       }}
       onBlur={(e) => {
         e.currentTarget.style.outline = 'none';
-        e.currentTarget.style.border = '3px solid #451a03';
+        e.currentTarget.style.border = '2px solid #451a03';
       }}
     >
       {label}
