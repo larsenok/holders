@@ -4,15 +4,11 @@ import type { Achievement } from '../data/achievements';
 import { usePopup } from './PopupProvider';
 import { useGuild } from './GuildProvider';
 import { useUser } from './UserProvider';
-import {
-  getCurrentUserId,
-  fetchAllAchievements,
-  fetchUserAchievements,
-  unlockAchievement,
-} from '../api/achievements';
+import { getCurrentUserId, unlockAchievement } from '../api/achievements';
 
 type Listener = (achievement: Achievement) => void;
 const listeners: Listener[] = [];
+const LOCAL_UNLOCKED_KEY = 'local_unlocked_achievements';
 
 const heroLevelMap: Record<number, string> = {
   10: 'heroLv10',
@@ -42,13 +38,17 @@ const AchievementsContext = createContext<AchievementsContextType | undefined>(u
 export let externalUnlock: (key: string) => Promise<void> = async () => {};
 
 export function AchievementsProvider({ children }: { children: React.ReactNode }) {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>(localAchievements);
   const timers = useRef<Record<string, NodeJS.Timeout>>({});
   const unlockedRef = useRef<Set<string>>(new Set());
   const isMountedRef = useRef(true);
   const { showPopup } = usePopup();
   const { guildStats, adventurers, addInventoryItem, addGold } = useGuild();
   const { credits, setCredits } = useUser();
+
+  const persistUnlocked = (set: Set<string>) => {
+    localStorage.setItem(LOCAL_UNLOCKED_KEY, JSON.stringify([...set]));
+  };
 
   const grantRewards = (ach: Achievement) => {
     if (ach.rewardTokens) {
@@ -65,123 +65,54 @@ export function AchievementsProvider({ children }: { children: React.ReactNode }
   const unlock = async (key: string) => {
     if (unlockedRef.current.has(key)) return;
 
-    const existing = achievements.find((a) => a.id === key && a.unlocked);
-    if (existing) {
-      unlockedRef.current.add(key); // ensure consistency
-      return;
-    }
-
-    const userId = await getCurrentUserId();
-    if (!userId) return;
-
-    const success = await unlockAchievement(userId, key);
-    if (!success) return;
+    const ach = localAchievements.find((a) => a.id === key);
+    if (!ach) return;
 
     unlockedRef.current.add(key);
+    persistUnlocked(unlockedRef.current);
 
-    setAchievements((prev) => {
-      const updated = [...prev];
-      const idx = updated.findIndex((a) => a.id === key);
-      if (idx !== -1) {
-        updated[idx] = { ...updated[idx], unlocked: true };
-      } else {
-        const local = localAchievements.find((a) => a.id === key);
-        if (local) updated.push({ ...local, unlocked: true });
-      }
-      return updated;
+    setAchievements((prev) => prev.map((item) => (
+      item.id === key ? { ...item, unlocked: true } : item
+    )));
+
+    listeners.forEach((fn) => fn({ ...ach, unlocked: true }));
+    grantRewards(ach);
+    showPopup({
+      title: ach.title,
+      description: ach.description,
+      duration: 4000,
     });
 
-    const ach =
-      localAchievements.find((a) => a.id === key) ||
-      achievements.find((a) => a.id === key);
-
-    if (ach) {
-      listeners.forEach((fn) => fn({ ...ach, unlocked: true }));
-      grantRewards(ach);
-      showPopup({
-        title: ach.title,
-        description: ach.description,
-        duration: 4000,
-      });
+    const userId = await getCurrentUserId();
+    if (userId) {
+      await unlockAchievement(userId, key);
     }
   };
 
   externalUnlock = unlock;
 
-
   useEffect(() => {
     isMountedRef.current = true;
+    const stored = localStorage.getItem(LOCAL_UNLOCKED_KEY);
+    const unlockedLocal = new Set<string>(stored ? JSON.parse(stored) : []);
+    unlockedRef.current = unlockedLocal;
 
-    const syncFromSupabase = async () => {
-      const userId = await getCurrentUserId();
-      if (!userId) {
-        console.warn('[AchievementsProvider] No user logged in');
-        return;
+    setAchievements(
+      localAchievements.map((achievement) => ({
+        ...achievement,
+        unlocked: unlockedLocal.has(achievement.id),
+      })),
+    );
+
+    localAchievements.forEach((achievement) => {
+      const seconds = Number(achievement.unlockAfterSeconds);
+      if (!achievement.unlocked && !isNaN(seconds) && seconds > 0 && !unlockedLocal.has(achievement.id)) {
+        timers.current[achievement.id] = setTimeout(async () => {
+          if (unlockedRef.current.has(achievement.id) || !isMountedRef.current) return;
+          await unlock(achievement.id);
+        }, seconds * 1000);
       }
-
-      const [supabaseAchievements, unlockedIds] = await Promise.all([
-        fetchAllAchievements(),
-        fetchUserAchievements(userId),
-      ]);
-
-      const enriched: Achievement[] = supabaseAchievements.map((dbAch) => {
-        const local = localAchievements.find((a) => a.id === dbAch.key);
-        return {
-          id: dbAch.id,
-          title: dbAch.title,
-          description: dbAch.description,
-          unlocked: unlockedIds.includes(dbAch.id),
-          unlockAfterSeconds: local?.unlockAfterSeconds,
-        };
-      });
-
-      setAchievements(enriched);
-      unlockedRef.current = new Set(unlockedIds);
-
-      enriched.forEach((achievement) => {
-        const seconds = Number(achievement.unlockAfterSeconds);
-        if (!achievement.unlocked && !isNaN(seconds) && seconds > 0) {
-          console.log(`[Timer] Setting up '${achievement.title}' in ${seconds}s`);
-
-          timers.current[achievement.id] = setTimeout(async () => {
-            if (unlockedRef.current.has(achievement.id)) return;
-
-            const success = await unlockAchievement(userId, achievement.id);
-            if (!success || unlockedRef.current.has(achievement.id)) return;
-
-            unlockedRef.current.add(achievement.id);
-
-            // Safe update only if still mounted
-            if (isMountedRef.current) {
-              setAchievements((prev) => {
-                const updated = [...prev];
-                const targetIndex = updated.findIndex((a) => a.id === achievement.id);
-                if (targetIndex !== -1) {
-                  updated[targetIndex] = { ...updated[targetIndex], unlocked: true };
-                }
-                return updated;
-              });
-
-              listeners.forEach((fn) =>
-                fn({ ...achievement, unlocked: true })
-              );
-
-              grantRewards(achievement);
-
-              showPopup({
-                title: achievement.title,
-                description: achievement.description,
-                duration: 4000,
-              });
-
-              console.log(`[Timer] Achievement unlocked: ${achievement.title}`);
-            }
-          }, seconds * 1000);
-        }
-      });
-    };
-
-    syncFromSupabase();
+    });
 
     return () => {
       isMountedRef.current = false;

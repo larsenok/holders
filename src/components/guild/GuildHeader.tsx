@@ -5,6 +5,7 @@ import GuildXPBar from './GuildXPBar';
 
 export default function GuildHeader() {
   const { guildStats, increaseXp } = useGuild();
+  const showDevControls = import.meta.env.VITE_SHOW_DEV_CONTROLS === 'true';
 
   return (
     <div className="w-full flex flex-col gap-3 mb-2">
@@ -22,11 +23,11 @@ export default function GuildHeader() {
               {guildStats.name}
             </h1>
           </div>
-          <HeavyButton onClick={() => increaseXp(20)} size="sm">X+</HeavyButton>
+          {showDevControls && <HeavyButton onClick={() => increaseXp(20)} size="sm">X+</HeavyButton>}
         </div>
       </div>
 
-      <div className="bg-black/40 p-3 rounded-lg grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm text-center w-full">
+      <div className="bg-black/40 p-3 rounded-lg grid grid-cols-3 gap-2 text-sm text-center w-full">
         <div className="flex flex-col items-center rounded bg-slate-900/50 py-1.5">
           <div className="flex items-center gap-2">
             <img src="/img/materials/star_0.png" className="w-4 h-4" alt="Level" />
@@ -41,7 +42,7 @@ export default function GuildHeader() {
           </div>
           <span className="text-[10px] tracking-[0.15em] text-slate-300">GOLD</span>
         </div>
-        <div className="col-span-2 sm:col-span-1 flex flex-col items-center rounded bg-slate-900/50 py-1.5">
+        <div className="flex flex-col items-center rounded bg-slate-900/50 py-1.5">
           <div className="flex items-center gap-2">
             <img src="/img/materials/power_0.png" className="w-4 h-4" alt="Power" />
             <span className="text-green-400 text-base font-semibold">{guildStats.power}</span>

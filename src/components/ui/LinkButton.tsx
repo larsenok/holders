@@ -10,10 +10,10 @@ type Props = {
 
 export default function LinkButton({ to, label, active }: Props) {
   const baseStyles: React.CSSProperties = {
-    padding: '8px 6px', // Mobile-first tap target and tighter horizontal fit
-    fontSize: '11px', // Prevent long labels from overflowing on narrow phones
+    padding: '8px 4px', // Mobile-first tap target and tighter horizontal fit
+    fontSize: '10px', // Prevent long labels from overflowing on narrow phones
     fontWeight: 700,
-    letterSpacing: '0.05em',
+    letterSpacing: '0.03em',
     textTransform: 'uppercase',
     color: active ? '#fef3c7' : '#fef3c7', // amber-100 for consistency
     background: active
@@ -33,6 +33,8 @@ export default function LinkButton({ to, label, active }: Props) {
     textDecoration: 'none',
     width: '100%',
     whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     lineHeight: 1.1,
     minHeight: '40px',
     display: 'flex',
