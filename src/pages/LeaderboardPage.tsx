@@ -89,8 +89,8 @@ export default function LeaderboardPage() {
       </div>
 
       {ready && guilds.length > 0 && (
-        <div className="w-[80%] mx-auto">
-          <table className="w-full border-collapse text-left">
+        <div className="w-[94%] sm:w-[90%] mx-auto overflow-x-auto">
+          <table className="w-full min-w-[520px] border-collapse text-left text-xs sm:text-sm">
             <thead>
               <tr className="text-pink-300 text-sm border-b border-gray-700">
                 <th className="py-2 pr-4">#</th>

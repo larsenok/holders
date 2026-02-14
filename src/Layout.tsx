@@ -32,7 +32,7 @@ export default function Layout() {
   const navigationItems = useMemo(() => [
     { path: '/', label: 'Guild' },
     { path: '/store', label: 'Store' },
-    { path: '/achievements', label: 'Achievements' },
+    { path: '/achievements', label: 'Trophies' },
     { path: '/leaderboard', label: 'Leaderboard' }
   ], []);
 
@@ -65,7 +65,7 @@ export default function Layout() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-1 md:hidden w-full">
+        <div className="grid grid-cols-4 gap-0.5 md:hidden w-full">
           {navigationItems.map(({ path, label }) => (
             <LinkButton
               key={path}

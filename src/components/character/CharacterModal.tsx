@@ -21,7 +21,15 @@ export default function CharacterModal({ adventurer, onClose }: Props) {
         className="relative bg-gray-900 border border-pink-600 rounded-xl p-6 w-[32rem] max-h-[85vh] overflow-auto shadow-2xl space-y-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-start">
+        <button
+          onClick={onClose}
+          className="absolute right-3 top-3 text-pink-300 hover:text-white text-xl font-bold"
+          aria-label="Close character inventory"
+        >
+          ×
+        </button>
+
+        <div className="flex justify-between items-start pr-8">
           <h2 className="text-2xl font-bold text-yellow-300">
             {adventurer.name}
             <span className="text-sm text-gray-400 ml-2 align-middle">Lv {adventurer.level}</span>

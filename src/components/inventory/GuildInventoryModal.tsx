@@ -9,6 +9,7 @@ import TomeDiscoveryPanel from './TomeDiscoveryPanel'
 
 export default function GuildInventoryModal({ onClose }: { onClose: () => void }) {
   const { guildInventory, guildStats, sellInventoryItem, addInventoryItem } = useGuild()
+  const showDevControls = import.meta.env.VITE_SHOW_DEV_CONTROLS === 'true'
 
   const weightMap = Object.fromEntries(lootTable.map(entry => [entry.item, entry.weight]));
   const itemKeys = (Object.keys(guildInventory) as InventoryItemType[]).sort(
@@ -77,12 +78,16 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
           <div className="flex items-center gap-3">
             <img src="/img/materials/gold_0.png" className="w-5 h-5" alt="Gold" />
             <span className="text-yellow-300 text-lg font-semibold">{guildStats.gold}</span>
-            <HeavyButton onClick={handleSale}>G</HeavyButton>
-            <HeavyButton onClick={() => lootTable.forEach(entry => {
-              addInventoryItem(entry.item, 1)
-            })}>
-              I+
-            </HeavyButton>
+            {showDevControls && (
+              <>
+                <HeavyButton onClick={handleSale}>G</HeavyButton>
+                <HeavyButton onClick={() => lootTable.forEach(entry => {
+                  addInventoryItem(entry.item, 1)
+                })}>
+                  I+
+                </HeavyButton>
+              </>
+            )}
           </div>
           <button
             onClick={onClose}

@@ -14,6 +14,7 @@ import { TaskActivity } from '../activities'
 import type { TaskType } from '../activities/TaskActivity'
 import CharacterXPBar from './CharacterXPBar'
 import HeavyButton from '../ui/HeavyButton'
+import ConfirmDialog from '../ui/ConfirmDialog'
 
 type Props = {
   adventurer: Adventurer
@@ -36,6 +37,8 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
   const [showStats, setShowStats] = useState(false)
   const [showTraining, setShowTraining] = useState(false)
   const [showTask, setShowTask] = useState(false)
+  const [confirmRemoval, setConfirmRemoval] = useState(false)
+  const showDevControls = import.meta.env.VITE_SHOW_DEV_CONTROLS === 'true'
 
   const color = getPowerColor(adventurer.power)
   const equippedCount = Object.values(adventurer.gear).filter(Boolean).length
@@ -155,17 +158,19 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
               </span>
               <span className="text-xs text-gray-500">Eq. ({equippedCount}/4)</span>
 
-              <HeavyButton
-                onClick={() => {
-                  updateAdventurer(adventurer.id, {
-                    level: adventurer.level + 1,
-                    xp: 0,
-                  })
-                }}
-                size="sm"
-              >
-                L+
-              </HeavyButton>
+              {showDevControls && (
+                <HeavyButton
+                  onClick={() => {
+                    updateAdventurer(adventurer.id, {
+                      level: adventurer.level + 1,
+                      xp: 0,
+                    })
+                  }}
+                  size="sm"
+                >
+                  L+
+                </HeavyButton>
+              )}
 
               <HeavyButton
                 onClick={() => setShowStats(true)}
@@ -178,7 +183,7 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    removeAdventurer(adventurer.id)
+                    setConfirmRemoval(true)
                   }}
                   className="text-pink-400 hover:text-red-500"
                 >
@@ -194,17 +199,17 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
               {adventurer.status === 'training' ? 'Training...' : adventurer.status}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-yellow-300 font-bold">
+            <div className="grid grid-cols-6 gap-1.5 text-yellow-300 font-bold">
               {STAT_ORDER.map((key) => {
                 const value = adventurer.stats[key]
                 const pct = Math.min((value / 20) * 100, 100)
                 return (
-                  <div key={key} title={STAT_LABELS[key]} className="rounded-lg border border-slate-700/80 bg-slate-950/70 px-2 py-1.5">
-                    <div className="relative h-4 rounded bg-slate-800/80 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-cyan-500 to-indigo-500" style={{ width: `${pct}%` }} />
-                      <span className="absolute inset-0 flex items-center justify-center text-[11px] text-white font-extrabold">{value}</span>
+                  <div key={key} title={STAT_LABELS[key]} className="rounded-lg border border-slate-700/80 bg-slate-950/70 px-1 py-1">
+                    <div className="relative h-14 rounded bg-slate-800/80 overflow-hidden flex items-end justify-center">
+                      <div className="w-full bg-gradient-to-t from-cyan-500 to-indigo-500" style={{ height: `${pct}%` }} />
+                      <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white font-extrabold">{value}</span>
                     </div>
-                    <div className="mt-1 text-[10px] tracking-[0.16em] text-center text-slate-300">{STAT_SHORT[key]}</div>
+                    <div className="mt-1 text-[9px] tracking-[0.08em] text-center text-slate-300">{STAT_SHORT[key]}</div>
                   </div>
                 )
               })}
@@ -325,6 +330,17 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
 
       {showTask && (
         <TaskModal adventurer={adventurer} onClose={() => setShowTask(false)} />
+      )}
+
+      {confirmRemoval && (
+        <ConfirmDialog
+          message={`Remove ${adventurer.name} from the guild?`}
+          onConfirm={() => {
+            removeAdventurer(adventurer.id)
+            setConfirmRemoval(false)
+          }}
+          onCancel={() => setConfirmRemoval(false)}
+        />
       )}
     </>
   )
