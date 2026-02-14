@@ -41,11 +41,14 @@ export default function Layout() {
       className="w-full min-h-[100dvh] text-white flex flex-col overflow-x-hidden"
       style={containerStyle}
     >
-      <div className="flex-1 min-h-0 pb-16 md:pb-20">
+      <div className="flex-1 min-h-0 pb-24 md:pb-20">
         <Outlet />
       </div>
 
-      <footer className="fixed bottom-0 left-0 right-0 z-40 w-full px-2 py-1.5 md:px-4 md:py-2 text-sm text-pink-300 bg-gray-800/95 border-t border-slate-700/80 backdrop-blur-sm">
+      <footer
+        className="fixed bottom-0 left-0 right-0 z-40 w-full px-2 pt-1.5 md:px-4 md:py-2 text-sm text-pink-300 bg-gray-800/95 border-t border-slate-700/80 backdrop-blur-sm"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.375rem)' }}
+      >
         <div className="hidden md:flex items-center justify-between gap-3">
           <h1 className="text-base md:text-lg font-bold text-yellow-300 flex items-center gap-2 whitespace-nowrap">
             <img src="/iron-sigil.svg" alt="Guild crest" className="w-6 h-6" />
@@ -62,7 +65,7 @@ export default function Layout() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-1.5 md:hidden w-full">
+        <div className="grid grid-cols-4 gap-1 md:hidden w-full">
           {navigationItems.map(({ path, label }) => (
             <LinkButton
               key={path}

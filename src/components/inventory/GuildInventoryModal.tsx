@@ -68,12 +68,12 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
   }, 0)
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50" onClick={() => { if (!confirmData) onClose() }}>
-      <div className="relative bg-gray-800 border border-yellow-700 p-4 rounded shadow-xl text-yellow-100 flex flex-col gap-4" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-2 sm:p-4" onClick={() => { if (!confirmData) onClose() }}>
+      <div className="relative w-full max-w-6xl max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] overflow-y-auto bg-gray-800 border border-yellow-700 p-3 sm:p-4 rounded shadow-xl text-yellow-100 flex flex-col gap-3 sm:gap-4" onClick={e => e.stopPropagation()}>
         {triggerSplash && <ItemSplash src="/img/materials/gold_0.png" />}
 
         {/* Header */}
-        <div className="flex justify-between items-start">
+        <div className="sticky top-0 z-10 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-gray-800/95 border-b border-yellow-900/70 flex justify-between items-start">
           <div className="flex items-center gap-3">
             <img src="/img/materials/gold_0.png" className="w-5 h-5" alt="Gold" />
             <span className="text-yellow-300 text-lg font-semibold">{guildStats.gold}</span>
@@ -86,21 +86,22 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
           </div>
           <button
             onClick={onClose}
-            className="text-yellow-300 hover:text-yellow-100 text-lg font-bold"
+            className="text-yellow-300 hover:text-yellow-100 text-2xl leading-none font-bold min-w-10 min-h-10 flex items-center justify-center"
+            aria-label="Close inventory"
           >
             ×
           </button>
         </div>
 
         {/* Two Columns */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Inventory Left */}
-          <div className="w-[28rem]">
-            <div className="grid grid-cols-5 gap-1 mb-4">
+          <div className="w-full lg:w-[28rem] lg:flex-shrink-0">
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 mb-4">
               {slots.map((slot, i) => (
                 <div
                   key={i}
-                  className="w-20 h-24 bg-gray-900 rounded flex flex-col items-center justify-center text-center relative border border-gray-700 group"
+                  className="w-full h-24 sm:h-24 bg-gray-900 rounded flex flex-col items-center justify-center text-center relative border border-gray-700 group"
                 >
                   {slot && slot[1] > 0 && (
                     <>
@@ -110,7 +111,7 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
                       </div>
                       <button
                         onClick={() => handleSellItem(slot[0], slot[1])}
-                        className="mt-1 px-2 py-0.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black font-bold whitespace-nowrap text-[14px]"
+                        className="mt-1 px-1.5 py-0.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black font-bold whitespace-nowrap text-[11px] sm:text-[13px]"
                       >
                         <span className="text-[80%]">Sell</span> ({itemValues[slot[0]] * slot[1]}g)
                       </button>
@@ -123,10 +124,10 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
               ))}
             </div>
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center mt-2 sm:mt-4">
               <button
                 onClick={handleSellAll}
-                className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-md text-black text-xl font-extrabold"
+                className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black text-base sm:text-lg font-extrabold"
               >
                 <span className="text-[80%]">Sell All</span> ({totalSellValue}g)
               </button>
