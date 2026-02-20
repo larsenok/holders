@@ -6,6 +6,7 @@ import HeavyButton from '../ui/HeavyButton'
 import { ItemSplash } from '../ui/effects/ItemSplash'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import TomeDiscoveryPanel from './TomeDiscoveryPanel'
+import { modalOverlayClass } from '../ui/modalStyles'
 
 export default function GuildInventoryModal({ onClose }: { onClose: () => void }) {
   const { guildInventory, guildStats, sellInventoryItem, addInventoryItem } = useGuild()
@@ -69,7 +70,7 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
   }, 0)
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50 p-2 sm:p-4" onClick={() => { if (!confirmData) onClose() }}>
+    <div className={modalOverlayClass} onClick={() => { if (!confirmData) onClose() }}>
       <div className="relative w-full max-w-6xl max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] overflow-y-auto bg-gray-800 border border-yellow-700 p-3 sm:p-4 rounded shadow-xl text-yellow-100 flex flex-col gap-3 sm:gap-4" onClick={e => e.stopPropagation()}>
         {triggerSplash && <ItemSplash src="/img/materials/gold_0.png" />}
 
@@ -106,17 +107,17 @@ export default function GuildInventoryModal({ onClose }: { onClose: () => void }
               {slots.map((slot, i) => (
                 <div
                   key={i}
-                  className="w-full h-20 sm:h-24 bg-gray-900 rounded flex flex-col items-center justify-center text-center relative border border-gray-700 group"
+                  className="w-full h-16 sm:h-24 bg-gray-900 rounded flex flex-col items-center justify-center text-center relative border border-gray-700 group"
                 >
                   {slot && slot[1] > 0 && (
                     <>
-                      <img src={inventoryIcons[slot[0]]} alt={slot[0]} className="w-9 h-9 sm:w-12 sm:h-12" />
+                      <img src={inventoryIcons[slot[0]]} alt={slot[0]} className="w-7 h-7 sm:w-12 sm:h-12" />
                       <div className="absolute -top-1 -right-1 bg-yellow-500 text-black text-[10px] sm:text-sm font-bold px-1 py-0.5 rounded shadow">
                         x{slot[1]}
                       </div>
                       <button
                         onClick={() => handleSellItem(slot[0], slot[1])}
-                        className="mt-1 px-1 py-0.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black font-bold whitespace-nowrap text-[10px] sm:text-[13px]"
+                        className="mt-0.5 px-1 py-0.5 bg-yellow-600 hover:bg-yellow-700 rounded text-black font-bold whitespace-nowrap text-[9px] sm:text-[13px]"
                       >
                         <span className="text-[80%]">Sell</span> ({itemValues[slot[0]] * slot[1]}g)
                       </button>

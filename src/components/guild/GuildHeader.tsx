@@ -64,7 +64,18 @@ export default function GuildHeader() {
             className="flex-1 flex items-center justify-between rounded-md border border-slate-700/80 bg-slate-900/65 px-3 py-2 text-left hover:border-cyan-400/50 transition"
             onClick={() => setExpanded(prev => !prev)}
           >
-            <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.15em] text-cyan-100">Guild overview</span>
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm font-semibold uppercase tracking-[0.15em] text-cyan-100 truncate">
+                Guild Overview · {guildStats.name}
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-[10px] sm:text-xs font-mono text-slate-200">
+                <span>Rank <span className="text-white font-semibold">{guildStats.rank.toLocaleString()}</span></span>
+                <span>•</span>
+                <span>Gold <span className="text-yellow-300 font-semibold">{guildStats.gold.toLocaleString()}</span></span>
+                <span>•</span>
+                <span>Power <span className="text-emerald-300 font-semibold">{guildStats.power.toLocaleString()}</span></span>
+              </div>
+            </div>
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
           {showDevControls && <HeavyButton onClick={() => increaseXp(20)} size="sm">X+</HeavyButton>}

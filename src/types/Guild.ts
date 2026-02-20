@@ -73,7 +73,7 @@ export type GuildStats = {
   missionGoldMultExpires?: number;
 };
 
-export type MaterialType = 'Wood' | 'Stone' | 'Iron' | 'Herbs' | 'Cloth'
+export type MaterialType = 'Wood' | 'Stone' | 'Iron' | 'Cloth'
 
 export type GearItem = {
   id: string

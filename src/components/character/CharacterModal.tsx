@@ -3,6 +3,7 @@ import GearGrid from './GearGrid'
 import { getPowerColor } from '../../utils/calculation'
 import IdleAnimation from '../anim/IdleAnimation'
 import { STAT_LABELS } from '../../data/adventurer'
+import { modalHeaderCloseClass, modalOverlayClass, modalPanelClass } from '../ui/modalStyles'
 
 type Props = {
   adventurer: Adventurer
@@ -14,16 +15,16 @@ export default function CharacterModal({ adventurer, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/10 backdrop-blur-[2px] z-50 flex items-center justify-center"
+      className={modalOverlayClass}
       onClick={onClose}
     >
       <div
-        className="relative bg-gray-900 border border-pink-600 rounded-xl p-6 w-[32rem] max-h-[85vh] overflow-auto shadow-2xl space-y-6"
+        className={`${modalPanelClass} border-pink-600 p-6 w-[32rem] max-h-[85vh] overflow-auto space-y-6`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-3 top-3 text-pink-300 hover:text-white text-xl font-bold"
+          className={modalHeaderCloseClass}
           aria-label="Close character inventory"
         >
           ×

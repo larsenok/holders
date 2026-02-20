@@ -4,7 +4,7 @@ import { useActivityCycle } from '../../hooks/useActivityCycle'
 import type { MaterialType } from '../../types/Guild'
 import { ItemSplash } from '../ui/effects/ItemSplash'
 
-const materials: MaterialType[] = ['Wood', 'Stone', 'Iron', 'Herbs', 'Cloth']
+const materials: MaterialType[] = ['Wood', 'Stone', 'Iron', 'Cloth']
 
 export type TaskType = 'guard' | 'research' | 'scout' | 'forage' | 'mentor'
 

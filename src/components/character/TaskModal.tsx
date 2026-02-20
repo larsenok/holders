@@ -1,6 +1,7 @@
 import { taskOptions } from '../../data/tasks'
 import { Adventurer } from '../../types/Guild'
 import { useGuild } from '../../providers/GuildProvider'
+import { modalHeaderCloseClass, modalOverlayClass, modalPanelClass } from '../ui/modalStyles'
 
 type Props = {
   adventurer: Adventurer
@@ -24,8 +25,9 @@ export default function TaskModal({ adventurer, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-gray-900 border border-blue-700 rounded-lg p-6 w-full max-w-md space-y-3" onClick={e => e.stopPropagation()}>
+    <div className={modalOverlayClass} onClick={onClose}>
+      <div className={`${modalPanelClass} max-w-md p-6 space-y-3`} onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className={modalHeaderCloseClass} aria-label="Close task modal">×</button>
         <h2 className="text-lg font-bold text-blue-300 mb-2">Assign Task: {adventurer.name}</h2>
         {taskOptions.map(t => (
           <button

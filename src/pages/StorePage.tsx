@@ -6,12 +6,23 @@ import ShowBalance from '../components/ShowBalance';
 import { useUser } from '../providers/UserProvider';
 import HeavyButton from '../components/ui/HeavyButton';
 import { useState } from 'react';
+import { useGuild } from '../providers/GuildProvider';
+
+const GOLD_STORE_PURCHASED_KEY = 'goldStorePurchases';
 
 export default function StorePage() {
   const { setUnlocked, unlockedStatuses, getEquipped, setEquipped } = useUnlocks();
   const mainBg = getEquipped();
   const { setCredits } = useUser();
+  const { guildStats, updateGuildStats, addGold, increaseXp, increasePower } = useGuild();
   const [errorItem, setErrorItem] = useState<string | null>(null);
+  const [purchasedGoldItems, setPurchasedGoldItems] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(GOLD_STORE_PURCHASED_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
 
   function handlePurchaseFeel(key: string, cost: number): void {
     const success = setUnlocked(key, cost, true, "credits");
@@ -22,7 +33,44 @@ export default function StorePage() {
   }
 
   function handlePurchaseGold(key: string, cost: number): void {
-    const success = setUnlocked(key, cost, true);
+    const item = goldStoreItems.find(entry => entry.key === key);
+    if (!item) return;
+    if (!item.repeatable && purchasedGoldItems.includes(item.key)) {
+      return;
+    }
+    if (guildStats.gold < cost) {
+      setErrorItem(key);
+      setTimeout(() => setErrorItem(null), 400);
+      return;
+    }
+
+    updateGuildStats({ gold: guildStats.gold - cost });
+
+    switch (item.effect.type) {
+      case 'gold':
+        addGold(item.effect.amount);
+        break;
+      case 'xp':
+        increaseXp(item.effect.amount);
+        break;
+      case 'power':
+        for (let i = 0; i < item.effect.amount; i += 1) increasePower();
+        break;
+      case 'passiveGoldBonus':
+        updateGuildStats({ passiveGoldBonus: (guildStats.passiveGoldBonus || 0) + item.effect.amount });
+        break;
+      case 'unlock':
+        setUnlocked(key, 0, true);
+        break;
+    }
+
+    if (!item.repeatable) {
+      const nextPurchased = [...purchasedGoldItems, item.key];
+      setPurchasedGoldItems(nextPurchased);
+      localStorage.setItem(GOLD_STORE_PURCHASED_KEY, JSON.stringify(nextPurchased));
+    }
+
+    const success = true;
     if (!success) {
       setErrorItem(key);
       setTimeout(() => setErrorItem(null), 400);
@@ -50,14 +98,20 @@ export default function StorePage() {
               <h3 className="text-xl font-semibold text-white">{item.name}</h3>
               <p className="text-sm text-gray-300 mb-2">{item.description}</p>
               <p className="mb-2 text-amber-300 font-mono">Cost: {item.cost} Gold</p>
+              {!item.repeatable && purchasedGoldItems.includes(item.key) && (
+                <p className="mb-2 text-xs text-emerald-300 font-semibold">Purchased</p>
+              )}
 
               <button
+                disabled={!item.repeatable && purchasedGoldItems.includes(item.key)}
                 className={`mt-1 px-4 py-1 text-sm rounded text-white bg-amber-500 hover:bg-amber-600 ${
-                  errorItem === item.key ? 'border-2 border-red-500 bg-red-600 animate-shake' : ''
+                  !item.repeatable && purchasedGoldItems.includes(item.key)
+                    ? 'opacity-50 cursor-not-allowed hover:bg-amber-500'
+                    : errorItem === item.key ? 'border-2 border-red-500 bg-red-600 animate-shake' : ''
                 }`}
                 onClick={() => handlePurchaseGold(item.key, item.cost)}
               >
-                Purchase
+                {!item.repeatable && purchasedGoldItems.includes(item.key) ? 'Owned' : 'Purchase'}
               </button>
             </motion.div>
           ))}

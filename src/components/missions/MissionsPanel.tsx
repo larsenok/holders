@@ -150,7 +150,7 @@ export default function MissionsPanel({ size = 'md' }: Props) {
       }
 
       // Strength: materials bonus
-      const mats: MaterialType[] = ['Wood', 'Stone', 'Iron', 'Herbs', 'Cloth'];
+      const mats: MaterialType[] = ['Wood', 'Stone', 'Iron', 'Cloth'];
       const mat = mats[Math.floor(Math.random() * mats.length)];
       const matQty = Math.max(1, Math.floor(1 * (1 + bonuses.materials)));
       updateGuildStash({

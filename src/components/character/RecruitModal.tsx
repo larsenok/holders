@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Adventurer } from '../../types/Guild'
 import { generateRandomAdventurer } from '../../data/adventurer'
 import { useGuild } from '../../providers/GuildProvider'
+import { modalHeaderCloseClass, modalOverlayClass, modalPanelClass } from '../ui/modalStyles'
 
 export default function RecruitModal({ onClose }: { onClose: () => void }) {
   const { addAdventurer } = useGuild()
@@ -17,8 +18,9 @@ export default function RecruitModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-gray-900 border border-yellow-700 rounded-lg p-6 w-full max-w-md space-y-4" onClick={e => e.stopPropagation()}>
+    <div className={modalOverlayClass} onClick={onClose}>
+      <div className={`${modalPanelClass} max-w-md p-6 space-y-4`} onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className={modalHeaderCloseClass} aria-label="Close recruit modal">×</button>
         <h2 className="text-lg font-bold text-yellow-300">Recruit New Adventurer</h2>
         <div className="flex flex-col gap-3">
           {candidates.map(c => (
