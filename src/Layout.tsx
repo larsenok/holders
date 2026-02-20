@@ -4,6 +4,7 @@ import LinkButton from './components/ui/LinkButton';
 import { useUnlocks } from './hooks/useUnlocks';
 import { useGuild } from './providers/GuildProvider';
 import LevelUpModal from './components/ui/LevelUpModal';
+import { useVisualStyle } from './hooks/useVisualStyle';
 
 type NavigationItem = {
   path: string;
@@ -15,6 +16,7 @@ export default function Layout() {
   const location = useLocation();
   const { getEquipped } = useUnlocks();
   const { guildStats, rankUpVisible, setRankUpVisible } = useGuild();
+  const { styleClassName } = useVisualStyle();
   const guildName = guildStats.name?.trim() || 'Iron Sigil';
 
   const mainBg = useMemo(() => getEquipped(), [getEquipped]);
@@ -55,7 +57,7 @@ export default function Layout() {
 
   return (
     <div
-      className="w-full min-h-[100dvh] text-white flex flex-col overflow-x-hidden"
+      className={`visual-style ${styleClassName} w-full min-h-[100dvh] text-white flex flex-col overflow-x-hidden`}
       style={containerStyle}
     >
       <div className="flex-1 min-h-0 pb-24 md:pb-20">

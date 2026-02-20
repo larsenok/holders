@@ -159,6 +159,50 @@ button:focus-visible {
 .guild-page.tier-3 { background: var(--tier3-bg); background-image: var(--tier3-bg-image); }
 .guild-page.tier-4 { background: var(--tier4-bg); background-image: var(--tier4-bg-image); }
 
+.visual-style {
+  --surface-radius: 1rem;
+  --style-filter: none;
+  --style-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+  filter: var(--style-filter);
+}
+
+.visual-style .rounded-2xl,
+.visual-style .rounded-lg {
+  border-radius: var(--surface-radius) !important;
+  box-shadow: var(--style-shadow);
+}
+
+.visual-style-a {
+  --surface-radius: 1rem;
+}
+
+.visual-style-b {
+  --surface-radius: 0.5rem;
+  --style-filter: brightness(1.1) saturate(1.08);
+}
+
+.visual-style-c {
+  --surface-radius: 1.25rem;
+  --style-filter: saturate(1.2);
+  --style-shadow: 0 14px 30px rgba(20, 184, 166, 0.2);
+}
+
+.visual-style-c .guild-page,
+.visual-style-c footer {
+  background-image: radial-gradient(circle at 10% 10%, rgba(34, 211, 238, 0.2), transparent 40%), radial-gradient(circle at 85% 0%, rgba(192, 132, 252, 0.22), transparent 35%);
+}
+
+.visual-style-d {
+  --surface-radius: 0.25rem;
+  --style-filter: sepia(0.3) contrast(1.05);
+  --style-shadow: 0 10px 22px rgba(35, 20, 5, 0.35);
+}
+
+.visual-style-d .rounded-2xl,
+.visual-style-d .rounded-lg {
+  border-color: rgba(234, 179, 8, 0.35) !important;
+}
+
 .guild-page.visitor-effect::after {
   content: '';
   position: absolute;
