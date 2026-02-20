@@ -1,3 +1,5 @@
+import { modalOverlayClass, modalPanelClass } from './modalStyles'
+
 // ConfirmDialog.tsx
 export default function ConfirmDialog({
   message,
@@ -9,8 +11,8 @@ export default function ConfirmDialog({
   onCancel: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="bg-gray-800 border border-yellow-700 text-yellow-100 p-6 rounded shadow-lg w-80">
+    <div className={modalOverlayClass}>
+      <div className={`${modalPanelClass} max-w-80 bg-gray-800 border-yellow-700 text-yellow-100 p-6`}>
         <div className="mb-4">{message}</div>
         <div className="flex justify-end gap-4">
           <button

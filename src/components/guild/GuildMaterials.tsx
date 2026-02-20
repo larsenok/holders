@@ -9,7 +9,6 @@ const materialIcons: Record<MaterialType, string> = {
   Wood: '/img/materials/log_0.png',
   Stone: '/img/materials/stone_0.png',
   Iron: '/img/materials/metals_0.png',
-  Herbs: '/img/materials/herbs_0.png',
   Cloth: '/img/materials/cloth_0.png',
 }
 
@@ -31,7 +30,7 @@ export default function GuildMaterials() {
           </div>
         </HeavyButton>
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {(Object.entries(guildStash.materials) as [MaterialType, number][]).map(
           ([type, quantity]) => (
             <div

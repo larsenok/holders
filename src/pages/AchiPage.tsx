@@ -8,8 +8,14 @@ import { useGuild } from '../providers/GuildProvider';
 export default function AchiPage() {
   const { achievements } = useAchievements();
   const { getEquipped } = useUnlocks();
-  const { guildStats } = useGuild();
+  const { guildStats, adventurers } = useGuild();
   const mainBg = getEquipped();
+  const availableClasses = new Set(adventurers.map(a => a.power));
+  const visibleAchievements = achievements.filter((ach) => {
+    if (!ach.unlocked) return false;
+    if (!ach.requiredClasses?.length) return true;
+    return ach.requiredClasses.some(requiredClass => availableClasses.has(requiredClass));
+  });
 
   const handleResetAchievements = async () => {
     console.log('[AchiPage] Clearing localStorage for feelos_achievements');
@@ -40,7 +46,7 @@ export default function AchiPage() {
     </button>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {achievements.map(ach => {
+        {visibleAchievements.map(ach => {
           const areaCounts = guildStats.missionsCompletedByArea || {};
           const counters: Record<string, number> = {
             mission10: guildStats.missionsCompleted || 0,

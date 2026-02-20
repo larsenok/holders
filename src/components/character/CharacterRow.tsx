@@ -148,14 +148,14 @@ export default function CharacterRow({ adventurer, expanded, toggleExpand }: Pro
   return (
     <>
       <div className="relative w-full text-left bg-gray-900 border border-pink-800 hover:border-pink-400 px-4 py-3 rounded mb-3 shadow-md transition-all duration-200 flex flex-col">
+        <div className="absolute top-2 right-2 rounded-md border border-cyan-300/50 bg-slate-900/90 px-2 py-1 text-[10px] sm:text-xs font-black tracking-[0.15em] text-cyan-200">
+          LV {adventurer.level}
+        </div>
         <div className="flex flex-col md:flex-row gap-3 md:gap-0">
           <div className="w-full md:w-1/3 md:pr-2 flex flex-col justify-between">
             <div className="text-base text-white font-bold flex flex-wrap items-center gap-2">
               <span className="text-lg sm:text-xl">{adventurer.name}</span>
 
-              <span className="text-lg text-yellow-300 font-extrabold">
-                Lv {adventurer.level}
-              </span>
               <span className="text-xs text-gray-500">Eq. ({equippedCount}/4)</span>
 
               {showDevControls && (

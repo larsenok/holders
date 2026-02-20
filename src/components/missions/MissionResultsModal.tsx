@@ -1,4 +1,5 @@
 import type { Mission } from '../../types/Missions';
+import { modalHeaderCloseClass, modalOverlayClass, modalPanelClass } from '../ui/modalStyles';
 
 interface Props {
   mission: Mission;
@@ -12,13 +13,14 @@ interface Props {
 export default function MissionResultsModal({ mission, finalGoldReward, finalGuildXp, effectTags = [], onComplete, onClose }: Props) {
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className={modalOverlayClass}
       onClick={onClose}
     >
       <div
-        className="bg-[#2b1f1a] border border-yellow-900 p-6 w-96 text-yellow-100 space-y-3"
+        className={`${modalPanelClass} max-w-96 border-yellow-900 bg-[#2b1f1a] p-6 text-yellow-100 space-y-3`}
         onClick={(e) => e.stopPropagation()}
       >
+        <button onClick={onClose} className={modalHeaderCloseClass} aria-label="Close mission results">×</button>
         <h2 className="text-lg font-bold font-mono">{mission.name}</h2>
         <div className="text-sm text-yellow-300">
           {mission.area} • {mission.type}

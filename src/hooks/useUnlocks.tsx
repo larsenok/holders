@@ -92,8 +92,8 @@ export const UnlockProvider = ({ children }: { children: ReactNode }) => {
         const newGold = currentGold - cost;
         updateGuildStats({ gold: newGold });
       }
+      return true;
     }
-    return false;
   }, [credits, user, guildStats.gold, setCredits, updateGuildStats]);
 
   const getEquipped = useCallback((accent: boolean = false): string => {

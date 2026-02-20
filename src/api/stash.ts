@@ -7,7 +7,6 @@ export type GuildStash = {
   wood: number
   stone: number
   iron: number
-  herbs: number
   cloth: number
   gear: GearItem[]
   uniques: UniqueItem[]

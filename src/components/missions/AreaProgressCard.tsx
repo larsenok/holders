@@ -20,7 +20,7 @@ export default function AreaProgressCard() {
         addGold(100);
         break;
       case 15: {
-        const mats: MaterialType[] = ['Wood', 'Stone', 'Iron', 'Herbs', 'Cloth'];
+        const mats: MaterialType[] = ['Wood', 'Stone', 'Iron', 'Cloth'];
         const materials = { ...guildStash.materials };
         mats.forEach(mat => {
           materials[mat] = guildStash.materials[mat] + 5;

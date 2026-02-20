@@ -1,4 +1,5 @@
 import type { InventoryItemType } from '../types/Guild';
+import type { Adventurer } from '../types/Guild';
 
 export type Achievement = {
   id: string;
@@ -11,6 +12,7 @@ export type Achievement = {
   rewardGold?: number; // optional gold reward
   rewardItem?: InventoryItemType; // optional item reward
   rewardItemQty?: number; // quantity for item rewards
+  requiredClasses?: Adventurer['power'][];
 };
 
 export const achievements: Achievement[] = [
@@ -70,4 +72,3 @@ export const achievements: Achievement[] = [
   { id: 'guildLv5', title: 'Guild Established', description: 'Reach guild rank 5.', unlocked: false, rewardTokens: 50 },
   { id: 'guildLv10', title: 'Guild Growing', description: 'Reach guild rank 10.', unlocked: false, rewardTokens: 100 },
 ];
-

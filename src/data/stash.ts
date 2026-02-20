@@ -6,7 +6,6 @@ export const defaultStash: GuildStash = {
     Wood: 0,
     Stone: 0,
     Cloth: 0,
-    Herbs: 0,
   },
   gear: [
     { id: crypto.randomUUID(), name: 'Rusty Helm', slot: 'head' },
@@ -22,5 +21,4 @@ export const STASH_LABELS: Record<keyof GuildStash['materials'], string> = {
   Wood: 'Wood: Common crafting material for construction and fuel.',
   Stone: 'Stone: Used in building, reinforcing, or heavy gear.',
   Cloth: 'Cloth: For garments, bandages, and light gear.',
-  Herbs: 'Herbs: Ground for potions, poultices, or enchantments.',
 }

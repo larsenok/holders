@@ -1,6 +1,7 @@
 import { useGuild } from '../../providers/GuildProvider'
 import { trainingSpots } from '../../data/training'
 import { Adventurer } from '../../types/Guild'
+import { modalHeaderCloseClass, modalOverlayClass, modalPanelClass } from '../ui/modalStyles'
 
 type Props = {
   adventurer: Adventurer
@@ -32,8 +33,9 @@ export default function TrainingModal({ adventurer, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md border border-pink-500">
+    <div className={modalOverlayClass} onClick={onClose}>
+      <div className={`${modalPanelClass} max-w-md p-6 border-pink-500`} onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className={modalHeaderCloseClass} aria-label="Close training modal">×</button>
         <h2 className="text-xl font-bold text-pink-300 mb-4">
           Begin Training: {adventurer.name}
         </h2>

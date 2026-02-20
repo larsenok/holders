@@ -9,6 +9,7 @@ import { defaultTypes } from '../../data/areas'
 import { useGuild } from '../../providers/GuildProvider'
 import { Lock } from 'lucide-react'
 import { getTomeEffectTags } from '../../utils/tomeUtils'
+import { modalOverlayClass } from '../ui/modalStyles'
 
 type Props = {
   running: Record<string, MissionRun>
@@ -33,13 +34,20 @@ export default function MissionModal({ running, startMission, onClose, completed
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50"
+      className={modalOverlayClass}
       onClick={onClose}
     >
       <div
-        className="bg-slate-950 border border-slate-700 p-3 sm:p-4 md:p-6 w-[95vw] md:w-[48rem] max-h-[90vh] overflow-auto space-y-4 sm:space-y-6 rounded-xl shadow-xl"
+        className="relative bg-slate-950 border border-slate-700 p-3 sm:p-4 md:p-6 w-[95vw] md:w-[48rem] max-h-[90vh] overflow-auto space-y-4 sm:space-y-6 rounded-xl shadow-xl"
         onClick={e => e.stopPropagation()}
       >
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 text-slate-300 hover:text-white text-2xl leading-none"
+          aria-label="Close mission control"
+        >
+          ×
+        </button>
         <h2 className="text-lg text-slate-100 font-semibold font-mono tracking-wide">
           Mission Control
         </h2>
@@ -66,10 +74,10 @@ export default function MissionModal({ running, startMission, onClose, completed
                   <img
                     src={areaImages[area]}
                     alt={area}
-                    className={`w-full h-24 object-cover transition duration-150 ${locked ? 'grayscale opacity-60' : ''}`}
+                    className={`w-full h-24 object-cover transition duration-150 ${locked ? 'grayscale blur-[1px] opacity-35' : ''}`}
                   />
                   <div className="absolute bottom-1 left-1 text-md font-semibold text-white bg-black/50 px-1.5 rounded">
-                    {area} {hasUncompletedUnique && <span className="text-yellow-300 ml-1">⭐</span>}
+                    {locked ? 'Unknown Region' : area} {!locked && hasUncompletedUnique && <span className="text-yellow-300 ml-1">⭐</span>}
                   </div>
                   {locked && (
                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-slate-200 font-mono text-sm">
