@@ -7,6 +7,7 @@ import { useUser } from '../providers/UserProvider';
 import HeavyButton from '../components/ui/HeavyButton';
 import { useState } from 'react';
 import { useGuild } from '../providers/GuildProvider';
+import { useVisualStyle, type VisualStyle } from '../hooks/useVisualStyle';
 
 const GOLD_STORE_PURCHASED_KEY = 'goldStorePurchases';
 
@@ -15,6 +16,7 @@ export default function StorePage() {
   const mainBg = getEquipped();
   const { setCredits } = useUser();
   const { guildStats, updateGuildStats, addGold, increaseXp, increasePower } = useGuild();
+  const { style, setStyle } = useVisualStyle();
   const [errorItem, setErrorItem] = useState<string | null>(null);
   const [purchasedGoldItems, setPurchasedGoldItems] = useState<string[]>(() => {
     try {
@@ -80,6 +82,13 @@ export default function StorePage() {
   function handleEquip(key: string): void {
     setEquipped(key);
   }
+
+  const styleOptions: { key: VisualStyle; label: string; description: string }[] = [
+    { key: 'a', label: 'A', description: 'Current look' },
+    { key: 'b', label: 'B', description: 'Brighter + less rounded' },
+    { key: 'c', label: 'C', description: 'Crystal neon style' },
+    { key: 'd', label: 'D', description: 'Ancient parchment style' },
+  ];
 
   return (
     <div className="min-h-screen text-white px-6 py-8 space-y-12" style={{ backgroundColor: mainBg }}>
@@ -169,6 +178,26 @@ export default function StorePage() {
           })}
         </div>
       </div>
+
+      <section className="space-y-3 border border-fuchsia-300/30 bg-slate-900/60 rounded-lg p-4">
+        <h2 className="text-2xl font-bold text-fuchsia-200">Visual Style</h2>
+        <p className="text-sm text-slate-300">Pick how the main UI looks across the game.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {styleOptions.map((option) => {
+            const active = style === option.key;
+            return (
+              <button
+                key={option.key}
+                className={`rounded-md border px-3 py-2 text-left transition ${active ? 'border-fuchsia-300 bg-fuchsia-700/60' : 'border-slate-600 bg-slate-800/50 hover:bg-slate-700/60'}`}
+                onClick={() => setStyle(option.key)}
+              >
+                <div className="font-semibold">Style {option.label}</div>
+                <div className="text-xs text-slate-200">{option.description}</div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

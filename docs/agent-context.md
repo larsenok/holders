@@ -28,10 +28,10 @@ This file is intentionally compact to speed up agent onboarding.
 - `src/pages/chat` (2) → `FakeChatDisplay.tsx`, `FakeChatPage.tsx`
 
 ## Hooks
-- Total files: **8**
+- Total files: **9**
 - Folders: **1**
 
-- `src/hooks` (8) → `useActivityCycle.tsx`, `useCalendarEvents.ts`, `useFeelTokens.ts`, `useGuildTheme.tsx`
+- `src/hooks` (9) → `useActivityCycle.tsx`, `useCalendarEvents.ts`, `useFeelTokens.ts`, `useGuildTheme.tsx`
 
 ## Providers
 - Total files: **4**
